@@ -248,7 +248,7 @@ public class SpeedometerView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(widthMeasureSpec, widthMeasureSpec);
+        setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
     }
 
     @Override
@@ -276,10 +276,10 @@ public class SpeedometerView extends View {
                 float cosAngle = (float) Math.cos(angle);
                 float sinAngle = (float) Math.sin(angle);
                 canvas.drawLine(
-                        (centerX + (centerX - borderSize - MINOR_TICK_SIZE)) * cosAngle,
-                        (centerY - (centerY - borderSize - MINOR_TICK_SIZE)) * sinAngle,
-                        (centerX + (centerX - borderSize - TICK_MARGIN)) * cosAngle,
-                        (centerY - (centerY - borderSize - TICK_MARGIN)) * sinAngle,
+                        centerX + (centerX - borderSize - MINOR_TICK_SIZE) * cosAngle,
+                        centerY - (centerY - borderSize - MINOR_TICK_SIZE) * sinAngle,
+                        centerX + (centerX - borderSize - TICK_MARGIN) * cosAngle,
+                        centerY - (centerY - borderSize - TICK_MARGIN) * sinAngle,
                         paintMinorTick);
             }
         }
