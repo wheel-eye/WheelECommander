@@ -4,6 +4,8 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.HandlerThread;
+import android.os.Process;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
@@ -16,8 +18,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Handler;
 
-public class NetworkClient extends Service implements INetworkClient{
+public static final class NetworkClient extends Service implements INetworkClient{
+    protected static final int PORT_NUMBER = 1000;
+
+    protected static final Socket socket = new Socket("ip", PORT_NUMBER);
+    
+    private static final HandlerThread senderThread = new HandlerThread("senderThread", Process.THREAD_PRIORITY_MORE_FAVORABLE);
+    private static final Handler senderHandler;
+
+    private static volatile boolean runningReceiverThread = true; // K.P - used to exit the receiverThread when onDestroy() is called 
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -25,50 +37,74 @@ public class NetworkClient extends Service implements INetworkClient{
     }
 
     @Override
-    public void onCreate() {
+    protected final void onCreate() {
         super.onCreate();
+
         Thread receiverThread = new Thread(new receiverThread());
         receiverThread.start();
+
+        senderThread.start();
+        senderHandler = new Handler(senderThread.get_looper());
     }
 
+    @Override
+    protected final void onDestroy() {
+        runningReceiverThread = false;
+        senderThread.quitSafely();
+        super.onDestroy();
+    }
+
+    /* 
+    K.P. - Removed executors and replaced as Runnable for a persistant thread,
+    we may need to replace the standard looper queue with a fifo circular queue
+    in the persistant thread.
+
+    Note: using anonymous Runnable may cause persistance issues
+    
+    Y.S. -
+    Replaces SenderHandler and SenderThread, instead of having a looper
+    to keep thread running, a new thread is created each time a message
+    needs to be sent
+     */
+    public static final void sendMessage(Message msg){
+        senderHandler.post(new Runnable() {
+            @Override
+            public run() {
+                try {
+                    PrintWriter pw = new PrintWriter(NetworkClient.socket.getOutputStream());
+                    pw.write("Interprets msg to the correct string");
+                    pw.flush();
+                    pw.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        });
+    }
     /*
     Y.S. -
     Replaces SenderHandler and SenderThread, instead of having a looper
     to keep thread running, a new thread is created each time a message
     needs to be sent
      */
-    @Override
-    public void sendMessage(Message msg) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            try {
-                Socket s = new Socket("ip", 1000);
-                PrintWriter pw = new PrintWriter(s.getOutputStream());
-                pw.write("Interprets msg to the correct string");
-                pw.flush();
-                pw.close();
-                s.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
 
     /*
     Y.S. - No need for ReceiverHandler when the whole thread always and only listen
      */
-    static class receiverThread implements Runnable {
+    private static final class receiverThread implements Runnable {
         Socket s;
         ServerSocket ss;
         InputStreamReader isr;
         BufferedReader br;
         String message;
         @Override
-        public void run() {
+        public final void run() {
             try {
-                ss = new ServerSocket(1000);
+                ss = new ServerSocket(PORT_NUMBER);
                 // Y.S. - Automatically exit when NetworkClient is destroyed
-                while (true) {
+                // K.P. - Wouldn't it just keep running until socket error?
+                // included runningReceiverThread to close
+                while (runningReceiverThread) {
                     s = ss.accept();
                     isr = new InputStreamReader(s.getInputStream());
                     br = new BufferedReader(isr);
@@ -81,22 +117,11 @@ public class NetworkClient extends Service implements INetworkClient{
                     class
                     */
                 }
+                s.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    /*
-    Y.S. - I do not see the point of connect() and disconnect() when
-    NetworkClient always runs on the background until it's destroyed,
-    unless it is for actively disconnecting the NetworkClient to the hardware.
-    In that case, it should be a runnable and based on a View activity, such as a
-    'disconnect' button on the UI, and can be done in the UI thread instead.
-     */
-    @Override
-    public void disconnect() {
-
     }
 
     /*
