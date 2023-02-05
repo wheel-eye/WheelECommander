@@ -6,10 +6,18 @@
         <attr name="borderSize" format="dimension" />
         <attr name="textGap" format="dimension" />
         <attr name="metricText" format="string" />
-
         <attr name="borderColor" format="color" />
         <attr name="fillColor" format="color" />
         <attr name="textColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="WaveView">
+        <attr name="waveWaterLevel" format="float" />
+        <attr name="waveAmplitudeRatio" format="float" />
+        <attr name="waveLengthRatio" format="float" />
+        <attr name="waveShiftRatio" format="float" />
+        <attr name="waveFrontColor" format="color" />
+        <attr name="waveBackColor" format="color" />
     </declare-styleable>
 
 </resources>

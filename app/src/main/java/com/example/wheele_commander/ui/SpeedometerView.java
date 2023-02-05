@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 
@@ -42,11 +44,10 @@ public class SpeedometerView extends View {
     private final RectF tickBorderRect = new RectF();
     private final Rect textBounds = new Rect();
     private float angle = MIN_ANGLE;
-    private int speed = 0;
+    private float speed = 0;
     private float centerX = getWidth() / 2f;
     private float centerY = getWidth() / 2f;
 
-    // Dimension Getters
     public float getCenterX() {
         return centerX;
     }
@@ -55,9 +56,12 @@ public class SpeedometerView extends View {
         return centerY;
     }
 
-    // Core Attributes
     public int getMaxSpeed() {
         return maxSpeed;
+    }
+
+    public float getSpeed() {
+        return speed;
     }
 
     public void setMaxSpeed(int value) {
@@ -160,13 +164,14 @@ public class SpeedometerView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        renderMajorTicks(canvas);
-        renderMinorTicks(canvas);
+        renderTicks(canvas);
         renderBorder(canvas);
         renderBorderFill(canvas);
         renderTickBorder(canvas);
         renderSpeedAndMetricText(canvas);
     }
+
+    private final LinearInterpolator interpolator = new LinearInterpolator();
 
     private final Paint paintIndicatorBorder = new Paint();
 
@@ -254,55 +259,33 @@ public class SpeedometerView extends View {
     @Override
     protected void onSizeChanged(int width, int height, int widthOld, int heightOld) {
         super.onSizeChanged(width, height, widthOld, heightOld);
-        indicatorBorderRect.set(
-                borderSize / 2,
-                borderSize / 2,
-                getWidth() - borderSize / 2,
-                getWidth() - borderSize / 2);
-        tickBorderRect.set(
-                borderSize + TICK_MARGIN,
-                borderSize + TICK_MARGIN,
-                getWidth() - borderSize - TICK_MARGIN,
-                getWidth() - borderSize - TICK_MARGIN);
+        indicatorBorderRect.set(borderSize / 2, borderSize / 2, getWidth() - borderSize / 2, getWidth() - borderSize / 2);
+        tickBorderRect.set(borderSize + TICK_MARGIN, borderSize + TICK_MARGIN, getWidth() - borderSize - TICK_MARGIN, getWidth() - borderSize - TICK_MARGIN);
     }
 
-    private void renderMinorTicks(Canvas canvas) {
+    private void renderTicks(Canvas canvas) {
         // TODO: Replace properly!
         centerX = getWidth() / 2f;
         centerY = getHeight() / 2f;
         for (int speed = MIN_SPEED; speed <= maxSpeed; speed += MINOR_TICK_STEP) {
-            if (speed % MAJOR_TICK_STEP != 0) {
-                double angle = Math.toRadians(mapSpeedToAngle(speed));
-                float cosAngle = (float) Math.cos(angle);
-                float sinAngle = (float) Math.sin(angle);
-                canvas.drawLine(
-                        centerX + (centerX - borderSize - MINOR_TICK_SIZE) * cosAngle,
-                        centerY - (centerY - borderSize - MINOR_TICK_SIZE) * sinAngle,
-                        centerX + (centerX - borderSize - TICK_MARGIN) * cosAngle,
-                        centerY - (centerY - borderSize - TICK_MARGIN) * sinAngle,
-                        paintMinorTick);
-            }
-        }
-    }
+            float angle = (float) Math.toRadians(mapSpeedToAngle(speed));
+            float cosAngle = (float) Math.cos(angle);
+            float sinAngle = (float) Math.sin(angle);
+            Paint tickPaint = speed % MAJOR_TICK_STEP == 0 ? paintMajorTick : paintMinorTick;
+            float tickSize = speed % MAJOR_TICK_STEP == 0 ? MAJOR_TICK_SIZE : MINOR_TICK_SIZE;
 
-    private void renderMajorTicks(Canvas canvas) {
-        // TODO: Replace properly!
-        centerX = getWidth() / 2f;
-        centerY = getHeight() / 2f;
-        for (int speed = MIN_SPEED; speed <= maxSpeed; speed += MAJOR_TICK_STEP) {
-            double angle = Math.toRadians(mapSpeedToAngle(speed));
-            float cos = (float) Math.cos(angle);
-            float sin = (float) Math.sin(angle);
             canvas.drawLine(
-                    centerX + (centerX - borderSize - MAJOR_TICK_SIZE) * cos,
-                    centerY - (centerY - borderSize - MAJOR_TICK_SIZE) * sin,
-                    centerX + (centerX - borderSize - TICK_MARGIN) * cos,
-                    centerY - (centerY - borderSize - TICK_MARGIN) * sin,
-                    paintMajorTick);
-            drawTextCentred(canvas, Integer.toString(speed),
-                    centerX + (centerX - borderSize - MAJOR_TICK_SIZE - TICK_MARGIN - TICK_TEXT_MARGIN) * cos,
-                    centerY - (centerY - borderSize - MAJOR_TICK_SIZE - TICK_MARGIN - TICK_TEXT_MARGIN) * sin,
-                    paintTickText);
+                    centerX + (centerX - borderSize - tickSize) * cosAngle,
+                    centerY - (centerY - borderSize - tickSize) * sinAngle,
+                    centerX + (centerX - borderSize - TICK_MARGIN) * cosAngle,
+                    centerY - (centerY - borderSize - TICK_MARGIN) * sinAngle,
+                    tickPaint);
+
+            if (speed % MAJOR_TICK_STEP == 0) {
+                drawTextCentred(canvas, Integer.toString(speed),
+                        centerX + (centerX - borderSize - MAJOR_TICK_SIZE - TICK_MARGIN - TICK_TEXT_MARGIN) * cosAngle,
+                        centerY - (centerY - borderSize - MAJOR_TICK_SIZE - TICK_MARGIN - TICK_TEXT_MARGIN) * sinAngle, paintTickText);
+            }
         }
     }
 
@@ -319,21 +302,24 @@ public class SpeedometerView extends View {
     }
 
     private void renderSpeedAndMetricText(Canvas canvas) {
-        drawTextCentred(canvas, Integer.toString(speed), getWidth() / 2f, getHeight() / 2f, paintSpeed);
-        drawTextCentred(canvas, metricText, getWidth() / 2f, getHeight() / 2f + paintSpeed.getTextSize() / 2f + textGap, paintMetric);
+        drawTextCentred(canvas, String.format("%.1f", speed), getCenterX(), getCenterY(), paintSpeed);
+        drawTextCentred(canvas, metricText, getCenterX(), getCenterY() + paintSpeed.getTextSize() / 2f + textGap, paintMetric);
     }
 
-    private float mapSpeedToAngle(int speed) {
+    private float mapSpeedToAngle(float speed) {
         return (MIN_ANGLE + ((MAX_ANGLE - MIN_ANGLE) / (maxSpeed - MIN_SPEED)) * (speed - MIN_SPEED));
     }
 
-    private int mapAngleToSpeed(float angle) {
-        return (int) (MIN_SPEED + ((maxSpeed - MIN_SPEED) / (MAX_ANGLE - MIN_ANGLE)) * (angle - MIN_ANGLE));
+    private float mapAngleToSpeed(float angle) {
+        return MIN_SPEED + (maxSpeed - MIN_SPEED) / (MAX_ANGLE - MIN_ANGLE) * (angle - MIN_ANGLE);
     }
 
-    public void setSpeed(int speedToSet, long durationMillis) {
+    public void setSpeed(float speedToSet, long durationMillis) {
+        if (speedToSet < MIN_SPEED || speedToSet > maxSpeed)
+            return;
+
         ValueAnimator animator = ValueAnimator.ofFloat(mapSpeedToAngle(speed), mapSpeedToAngle(speedToSet));
-        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.setInterpolator(interpolator);
         animator.addUpdateListener(valueAnimator -> {
             angle = (float) valueAnimator.getAnimatedValue();
             speed = mapAngleToSpeed(angle);
@@ -343,8 +329,8 @@ public class SpeedometerView extends View {
         animator.start();
     }
 
-    private void drawTextCentred(Canvas canvas, String text, double cx, double cy, Paint paint) {
+    private void drawTextCentred(Canvas canvas, String text, float cx, float cy, Paint paint) {
         paint.getTextBounds(text, 0, text.length(), textBounds);
-        canvas.drawText(text, (float) (cx - textBounds.exactCenterX()), (float) (cy - textBounds.exactCenterY()), paint);
+        canvas.drawText(text, cx - textBounds.exactCenterX(), cy - textBounds.exactCenterY(), paint);
     }
 }
