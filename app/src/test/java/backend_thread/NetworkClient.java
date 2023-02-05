@@ -2,9 +2,12 @@ package backend_thread;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
 
@@ -14,8 +17,21 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+<<<<<<< Updated upstream
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+=======
+
+public final class NetworkClient extends Service implements INetworkClient{
+    private static final int PORT_NUMBER = 6969;
+
+    private static final HandlerThread senderHT =
+            new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
+
+    private static Handler senderHandler;
+
+    private static volatile boolean runningReceiverThread = true; // K.P - used to exit the receiverThread when onDestroy() is called 
+>>>>>>> Stashed changes
 
 public class NetworkClient extends Service implements INetworkClient{
     @Nullable
@@ -29,6 +45,7 @@ public class NetworkClient extends Service implements INetworkClient{
         super.onCreate();
         Thread receiverThread = new Thread(new receiverThread());
         receiverThread.start();
+<<<<<<< Updated upstream
     }
 
     /*
@@ -52,6 +69,43 @@ public class NetworkClient extends Service implements INetworkClient{
                 throw new RuntimeException(e);
             }
         });
+=======
+
+        senderHT.start();
+        senderHandler = new Handler(senderHT.getLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                switch (msg.what) {
+                    case 1:
+                        // Handle message 1
+                        break;
+                    case 2:
+                        // Handle message 2
+                        break;
+                    default:
+                        super.handleMessage(msg);
+                }
+            }
+        };
+    }
+
+    @Override
+    public void onDestroy() {
+        runningReceiverThread = false;
+        senderHT.quitSafely();
+        super.onDestroy();
+    }
+
+    public void sendMessage(Message msg){
+
+    }
+
+    @Override
+    public void subscribe(ViewModel viewModel) {
+
+    }
+
+>>>>>>> Stashed changes
     }
 
     /*
@@ -105,11 +159,6 @@ public class NetworkClient extends Service implements INetworkClient{
      */
     @Override
     public void subscribe(ViewModel viewModel) {
-
-    }
-
-    @Override
-    public void unsubscribe(ViewModel viewModel) {
 
     }
 }

@@ -11,9 +11,5 @@ public interface INetworkClient {
 
     void sendMessage(Message msg);
 
-    void disconnect();
-
     void subscribe(ViewModel viewModel);
-
-    void unsubscribe(ViewModel viewModel);
 }
