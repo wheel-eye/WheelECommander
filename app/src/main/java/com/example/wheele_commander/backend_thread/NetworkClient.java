@@ -34,12 +34,7 @@ public final class NetworkClient extends Service implements INetworkClient{
     private static final int PORT_NUMBER = 6969;
 
     private static final HandlerThread senderHT =
-            new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND){
-        @Override
-        protected void onLooperPrepared(){
-            this.Socket socket = new Socket(PORT_NUMBER);
-        }
-    };
+            new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
 
     private static Handler senderHandler;
 
