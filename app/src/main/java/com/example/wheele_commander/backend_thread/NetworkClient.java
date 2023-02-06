@@ -29,12 +29,17 @@ public final class NetworkClient extends Service implements INetworkClient{
     Y.S.- It should be List<ViewModel> right? otherwise the subscribe method should take
           IMessageSubscriber as inputs.
      */
-    private List<ViewModel> subscribedViewModels = new List<ViewModel>();
+    private List<ViewModel> subscribedViewModels = new ArrayList<ViewModel>();
 
     private static final int PORT_NUMBER = 6969;
 
     private static final HandlerThread senderHT =
-            new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
+            new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND){
+        @Override
+        protected void onLooperPrepared(){
+            this.Socket socket = new Socket(PORT_NUMBER);
+        }
+    };
 
     private static Handler senderHandler;
 
