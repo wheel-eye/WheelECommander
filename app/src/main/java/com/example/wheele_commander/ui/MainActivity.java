@@ -1,8 +1,9 @@
 package com.example.wheele_commander.ui;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
+import android.view.MotionEvent;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,9 @@ import com.example.wheele_commander.R;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.github.controlwear.virtual.joystick.android.JoystickView;
+
+@SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
@@ -19,6 +23,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        JoystickView joystickView = findViewById(R.id.joystickView);
+        joystickView.setOnMoveListener((angle, strength) -> {
+            System.out.println(angle + " " + strength);
+        });
+
+        ConstraintLayout layout = findViewById(R.id.constraintLayout);
+        layout.setOnTouchListener((view, motionEvent) -> {
+            int action = motionEvent.getAction();
+            if (action == MotionEvent.ACTION_DOWN) {
+                joystickView.setX(motionEvent.getX() - joystickView.getWidth() / 2f);
+                joystickView.setY(motionEvent.getY() - joystickView.getHeight() / 2f);
+            }
+
+            return false;
+        });
 
         SpeedometerView speedometerView = findViewById(R.id.speedometerView);
 
@@ -43,8 +63,5 @@ public class MainActivity extends AppCompatActivity {
             speedometerView.setSpeed(s.get(), 400L);
             batteryView.setBatteryLevel(b.get());
         });
-
-        ConstraintLayout layout = findViewById(R.id.constraintLayout);
-        layout.setOnClickListener(view -> System.out.println("clicking..."));
     }
 }
