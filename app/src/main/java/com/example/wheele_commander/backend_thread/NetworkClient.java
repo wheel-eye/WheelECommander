@@ -29,7 +29,7 @@ public final class NetworkClient extends Service implements INetworkClient{
     Y.S.- It should be List<ViewModel> right? otherwise the subscribe method should take
           IMessageSubscriber as inputs.
      */
-    private List<ViewModel> subscribedViewModels;
+    private List<ViewModel> subscribedViewModels = new List<ViewModel>();
 
     private static final int PORT_NUMBER = 6969;
 
@@ -38,10 +38,12 @@ public final class NetworkClient extends Service implements INetworkClient{
 
     private static Handler senderHandler;
 
+    /*
     private static final HandlerThread receiverHT =
             new HandlerThread("ReceiverHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
+    */
 
-    private static Handler receiverHandler;
+    //private static Handler receiverHandler;
 
     private static volatile boolean runningReceiverThread = true; // K.P - used to exit the receiverThread when onDestroy() is called
 
@@ -133,7 +135,7 @@ public final class NetworkClient extends Service implements INetworkClient{
                     Deserialize data and send to viewmodel
                      */
                 }
-                s.close();
+                ss.close();
                 }
             catch (IOException e) {
                         throw new RuntimeException(e);
