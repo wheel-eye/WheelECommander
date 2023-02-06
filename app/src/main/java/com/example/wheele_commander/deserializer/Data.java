@@ -1,7 +1,7 @@
 package com.example.wheele_commander.deserializer;
 
 
-public class data {
+public class Data {
     public int getBattery() {
         return battery;
     }

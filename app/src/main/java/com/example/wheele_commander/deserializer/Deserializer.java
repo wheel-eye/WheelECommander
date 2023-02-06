@@ -18,9 +18,9 @@ public class Deserializer {
         return instance;
     }
 
-    public static data getData(byte[] stream){
+    public static Data getData(byte[] stream){
         try {
-            return new ObjectMapper().readValue(stream, data.class);
+            return new ObjectMapper().readValue(stream, Data.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

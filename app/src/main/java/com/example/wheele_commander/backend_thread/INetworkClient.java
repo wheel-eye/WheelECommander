@@ -11,5 +11,5 @@ public interface INetworkClient {
 
     void sendMessage(Message msg);
 
-    void subscribe(ViewModel viewModel);
+    void subscribe(IMessageSubscriber viewModel);
 }
