@@ -27,7 +27,7 @@ public class ReceiverThread extends Thread{
 
         try {
             InputStream is = socket.getInputStream();
-            receiverHandler.sendMessage(deserializeToMessage(readToByteArray(is)));
+            receiverHandler.handleMessage(deserializeToMessage(readToByteArray(is)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
