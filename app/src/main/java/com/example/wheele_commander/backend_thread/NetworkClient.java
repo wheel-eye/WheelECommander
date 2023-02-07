@@ -52,7 +52,7 @@ public final class NetworkClient extends Service implements INetworkClient {
         senderHandler = new SenderHandler(senderHT.getLooper(), socket);
         senderHT.start();
 
-        receiverHandler = new ReceiverHandler(Looper.getMainLooper());
+        receiverHandler = new ReceiverHandler(Looper.getMainLooper(), subscribedViewModels);
         receiverThread = new Thread(new ReceiverThread(socket, receiverHandler));
         receiverThread.start();
     }

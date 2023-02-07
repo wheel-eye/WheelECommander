@@ -26,9 +26,9 @@ public class Deserializer {
         }
     }
 
-    public static warning getWarning(byte[] stream){
+    public static Warning getWarning(byte[] stream){
         try {
-            return new ObjectMapper().readValue(stream, warning.class);
+            return new ObjectMapper().readValue(stream, Warning.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

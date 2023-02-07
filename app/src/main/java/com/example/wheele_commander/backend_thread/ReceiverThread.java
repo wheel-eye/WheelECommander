@@ -4,10 +4,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.example.wheele_commander.deserializer.Deserializer;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class ReceiverThread extends Thread{
     private Socket socket;
@@ -24,11 +27,7 @@ public class ReceiverThread extends Thread{
 
         try {
             InputStream is = socket.getInputStream();
-            byte[] data = readToByteArray(is);
-            Message msg = new Message();
-            msg.what = 1;
-            msg.obj = data;
-            receiverHandler.sendMessage(msg);
+            receiverHandler.sendMessage(deserializeToMessage(readToByteArray(is)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -47,5 +46,18 @@ public class ReceiverThread extends Thread{
 
         baos.flush();
         return baos.toByteArray();
+    }
+
+    private Message deserializeToMessage(byte[] stream) {
+        byte[] data = Arrays.copyOfRange(stream, 1, stream.length);
+        Message msg = new Message();
+        if (Byte.toUnsignedInt(stream[0]) == 0) {
+            msg.what = 0;
+            msg.obj = Deserializer.getWarning(data);
+        } else {
+            msg.what = 1;
+            msg.obj = Deserializer.getData(data);
+        }
+        return msg;
     }
 }

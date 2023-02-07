@@ -6,18 +6,28 @@ import android.os.Message;
 
 import androidx.annotation.NonNull;
 
+import java.util.List;
+
 public class ReceiverHandler extends Handler {
-    public ReceiverHandler(Looper looper){
+    private final List<IMessageSubscriber> subscribedViewModels;
+
+    public ReceiverHandler(Looper looper, List<IMessageSubscriber> subscribedViewModels){
         super(looper);
+        this.subscribedViewModels = subscribedViewModels;
     }
 
     @Override
     public void handleMessage(@NonNull Message msg) {
+
         switch (msg.what) {
-            case 1:
-                // Handle message 1
+            case 0:
+                /*
+                for (IMessageSubscriber subscriber : subscribedViewModels.get(EventType)) {
+                        subscriber.handleMessage(msg);
+                }
+                */
                 break;
-            case 2:
+            case 1:
                 // Handle message 2
                 break;
             default:
