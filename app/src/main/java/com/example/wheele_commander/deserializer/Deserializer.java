@@ -18,17 +18,17 @@ public class Deserializer {
         return instance;
     }
 
-    public static Data getData(byte[] stream){
+    public static SensorData getData(byte[] stream){
         try {
-            return new ObjectMapper().readValue(stream, Data.class);
+            return new ObjectMapper().readValue(stream, SensorData.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Warning getWarning(byte[] stream){
+    public static SensorWarning getWarning(byte[] stream){
         try {
-            return new ObjectMapper().readValue(stream, Warning.class);
+            return new ObjectMapper().readValue(stream, SensorWarning.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
