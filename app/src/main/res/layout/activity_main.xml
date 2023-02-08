@@ -16,8 +16,8 @@
 
     <com.example.wheele_commander.ui.SpeedometerView
         android:id="@+id/speedometerView"
-        android:layout_width="321dp"
-        android:layout_height="284dp"
+        android:layout_width="291dp"
+        android:layout_height="289dp"
         android:layout_marginTop="75dp"
         app:borderColor="#21304F"
         app:borderSize="20dp"
@@ -140,8 +140,8 @@
 
     <io.github.controlwear.virtual.joystick.android.JoystickView
         android:id="@+id/joystickView"
-        android:layout_width="225dp"
-        android:layout_height="203dp"
+        android:layout_width="323dp"
+        android:layout_height="310dp"
         android:alpha="0.5"
         app:JV_borderColor="#707070"
         app:JV_borderWidth="8dp"
@@ -150,6 +150,7 @@
         app:JV_fixedCenter="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

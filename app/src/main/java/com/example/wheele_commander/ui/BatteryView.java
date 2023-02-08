@@ -27,6 +27,8 @@ public class BatteryView extends View {
 
     public static final int DEFAULT_BEHIND_WAVE_COLOR = Color.parseColor("#28FFFFFF");
     public static final int DEFAULT_FRONT_WAVE_COLOR = Color.parseColor("#3CFFFFFF");
+    public static final int DEFAULT_BORDER_COLOR = Color.parseColor("#21304F");
+    public static final int DEFAULT_BORDER_WIDTH = 30;
 
     private BitmapShader waveShader;
     private Matrix shaderMatrix;
@@ -46,24 +48,29 @@ public class BatteryView extends View {
 
     private int behindWaveColor = DEFAULT_BEHIND_WAVE_COLOR;
     private int frontWaveColor = DEFAULT_FRONT_WAVE_COLOR;
+    private int borderColor = DEFAULT_BORDER_COLOR;
+    private int borderWidth = DEFAULT_BORDER_WIDTH;
     private final Rect textBounds = new Rect();
 
     public BatteryView(Context context) {
         super(context);
         init();
+        startAnimation();
     }
 
     public BatteryView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(attrs);
+        startAnimation();
     }
 
     public BatteryView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(attrs);
+        startAnimation();
     }
 
-    public void start() {
+    public void startAnimation() {
         ObjectAnimator waveShiftAnim = ObjectAnimator.ofFloat(
                 this, "waveShiftRatio", 0f, 1f);
         waveShiftAnim.setRepeatCount(ValueAnimator.INFINITE);
@@ -97,8 +104,12 @@ public class BatteryView extends View {
         waveShiftRatio = typedArray.getFloat(R.styleable.WaveView_waveShiftRatio, DEFAULT_WAVE_SHIFT_RATIO);
         frontWaveColor = typedArray.getColor(R.styleable.WaveView_waveFrontColor, DEFAULT_FRONT_WAVE_COLOR);
         behindWaveColor = typedArray.getColor(R.styleable.WaveView_waveBackColor, DEFAULT_BEHIND_WAVE_COLOR);
+        borderColor = typedArray.getColor(R.styleable.WaveView_waveBorderColor, DEFAULT_BORDER_COLOR);
+        borderWidth = typedArray.getInt(R.styleable.WaveView_waveBorderWidth, DEFAULT_BORDER_WIDTH);
 
         typedArray.recycle();
+
+        setBorder(borderWidth, borderColor);
     }
 
     public float getWaveShiftRatio() {
@@ -118,6 +129,7 @@ public class BatteryView extends View {
     }
 
     public void setBatteryLevel(float newBatteryLevel) {
+        // TODO: floating point precision loss when approaching 1
         if (batteryLevel == newBatteryLevel || newBatteryLevel < 0f || newBatteryLevel > 1f)
             return;
 

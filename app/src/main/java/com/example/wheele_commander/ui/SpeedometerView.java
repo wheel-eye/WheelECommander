@@ -5,11 +5,9 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -26,12 +24,13 @@ public class SpeedometerView extends View {
     public static final int MIN_SPEED = 0;
     public static final int MINOR_TICK_STEP = 1;
     public static final int MAJOR_TICK_STEP = 2;
-    public static final float TICK_MARGIN = 10f;
+    public static final float TICK_MARGIN = 8f;
     public static final float TICK_TEXT_MARGIN = 30f;
     public static final float MAJOR_TICK_SIZE = 50f;
     public static final float MINOR_TICK_SIZE = 30f;
     public static final float MAJOR_TICK_WIDTH = 8f;
     public static final float MINOR_TICK_WIDTH = 4f;
+    private static final long ANIMATION_DURATION = 400L;
 
     private int maxSpeed = 10;
     private float borderSize = 36f;
@@ -314,7 +313,7 @@ public class SpeedometerView extends View {
         return MIN_SPEED + (maxSpeed - MIN_SPEED) / (MAX_ANGLE - MIN_ANGLE) * (angle - MIN_ANGLE);
     }
 
-    public void setSpeed(float speedToSet, long durationMillis) {
+    public void setVelocity(float speedToSet) {
         if (speedToSet < MIN_SPEED || speedToSet > maxSpeed)
             return;
 
@@ -325,7 +324,7 @@ public class SpeedometerView extends View {
             speed = mapAngleToSpeed(angle);
             invalidate();
         });
-        animator.setDuration(durationMillis);
+        animator.setDuration(ANIMATION_DURATION);
         animator.start();
     }
 

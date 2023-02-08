@@ -18,6 +18,8 @@
         <attr name="waveShiftRatio" format="float" />
         <attr name="waveFrontColor" format="color" />
         <attr name="waveBackColor" format="color" />
+        <attr name="waveBorderColor" format="color" />
+        <attr name="waveBorderWidth" format="integer" />
     </declare-styleable>
 
 </resources>
