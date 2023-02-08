@@ -9,7 +9,7 @@ import android.os.Message;
 
 import backend_thread.NetworkClient;
 
-public final class JoystickViewModel {
+public class JoystickViewModel {
     private INetworkClient networkClient;
 
     public JoystickViewModel() {

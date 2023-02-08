@@ -11,7 +11,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import backend_thread.NetworkClient;
 
-public final class BatteryViewModel implements IMessageSubscriber {
+public class BatteryViewModel implements IMessageSubscriber {
     // represents 12km
     public static final int MAXIMUM_MILEAGE = 12000;
     public final MutableLiveData<Integer> batteryCharge;

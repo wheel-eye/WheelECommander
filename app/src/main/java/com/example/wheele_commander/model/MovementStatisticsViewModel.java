@@ -12,7 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import backend_thread.NetworkClient;
 
-public final class MovementStatisticsViewModel implements IMessageSubscriber {
+public class MovementStatisticsViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;
     public final MutableLiveData<Integer> velocity;
     public final MutableLiveData<Integer> acceleration;

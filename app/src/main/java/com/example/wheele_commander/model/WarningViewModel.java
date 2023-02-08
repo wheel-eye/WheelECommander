@@ -7,7 +7,7 @@ import android.os.Message;
 
 import backend_thread.NetworkClient;
 
-public final class WarningViewModel implements IMessageSubscriber {
+public class WarningViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;
 
     public WarningViewModel() {
