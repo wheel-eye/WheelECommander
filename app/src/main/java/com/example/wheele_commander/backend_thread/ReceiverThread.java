@@ -1,7 +1,6 @@
 package com.example.wheele_commander.backend_thread;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 
 import com.example.wheele_commander.deserializer.Deserializer;
@@ -12,40 +11,45 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.Arrays;
 
-public class ReceiverThread extends Thread{
-    private Socket socket;
-    private Handler receiverHandler;
+public class ReceiverThread extends Thread {
+    private final Socket socket;
+    private final Handler receiverHandler;
+    private boolean running;
 
-    public ReceiverThread(Socket socket, Handler receiverHandler){
-        this.socket = socket;
+    public ReceiverThread(Handler receiverHandler, Socket socket) {
         this.receiverHandler = receiverHandler;
+        this.socket = socket;
+        running = true;
     }
 
     @Override
     public void run() {
-        Looper.prepare();
-
-        try {
-            InputStream is = socket.getInputStream();
-            receiverHandler.handleMessage(deserializeToMessage(readToByteArray(is)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        while (running) {
+            try {
+                InputStream inputStream = socket.getInputStream();
+                byte[] inputBytes = readToByteArray(inputStream);
+                receiverHandler.handleMessage(deserializeToMessage(inputBytes));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+    }
 
-        Looper.loop();
+    public void stopThread() {
+        running = false;
     }
 
     private byte[] readToByteArray(InputStream stream) throws IOException {
         int nRead;
         byte[] data = new byte[4];
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         while ((nRead = stream.read(data, 0, data.length)) != 0) {
-            baos.write(data, 0, nRead);
+            outputStream.write(data, 0, nRead);
         }
 
-        baos.flush();
-        return baos.toByteArray();
+        outputStream.flush();
+        return outputStream.toByteArray();
     }
 
     private Message deserializeToMessage(byte[] stream) {

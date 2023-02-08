@@ -2,10 +2,9 @@ package com.example.wheele_commander.backend_thread;
 
 public class Wheelchair {
     private boolean isParentalLockOn;
-
     private int maxVelocity;
 
-    public Wheelchair(){
+    public Wheelchair() {
         // Y.S. - subject to change
         setParentalLockOn(false);
         setMaxVelocity(100);

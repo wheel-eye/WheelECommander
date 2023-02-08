@@ -13,11 +13,11 @@ import java.net.Socket;
 
 public class SenderHandler extends Handler {
     private final Socket socket;
-
     private final DataOutputStream outputStream;
 
     public SenderHandler(Looper looper, Socket socket) {
         super(looper);
+
         this.socket = socket;
         try {
             outputStream = new DataOutputStream(socket.getOutputStream());

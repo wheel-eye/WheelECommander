@@ -11,14 +11,13 @@ import java.util.List;
 public class ReceiverHandler extends Handler {
     private final List<IMessageSubscriber> subscribedViewModels;
 
-    public ReceiverHandler(Looper looper, List<IMessageSubscriber> subscribedViewModels){
+    public ReceiverHandler(Looper looper, List<IMessageSubscriber> subscribedViewModels) {
         super(looper);
         this.subscribedViewModels = subscribedViewModels;
     }
 
     @Override
     public void handleMessage(@NonNull Message msg) {
-
         switch (msg.what) {
             case 0:
                 /*
