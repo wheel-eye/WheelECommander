@@ -1,6 +1,6 @@
 package com.example.wheele_commander.model;
 
-public enum MessageType{
+public enum MessageType {
     /*
     JOYSTICK_MOVEMENT:
     arg1 = angle
