@@ -48,6 +48,10 @@ public class MovementStatisticsViewModel extends ViewModel implements IMessageSu
         return velocity;
     }
 
+    public MutableLiveData<Integer> getDistanceTravelled() {
+        return distanceTravelled;
+    }
+
     @Override
     public void handleMessage(Message msg) {
         if (msg.what == MessageType.VELOCITY_UPDATE.ordinal()) {

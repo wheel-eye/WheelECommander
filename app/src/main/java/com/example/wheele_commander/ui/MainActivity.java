@@ -21,33 +21,49 @@ import io.github.controlwear.virtual.joystick.android.JoystickView;
 @SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
     private ViewModelProvider viewModelProvider;
-    private MovementStatisticsViewModel movementViewModel;
-    private BatteryViewModel batteryViewModel;
-    private WarningViewModel warningViewModel;
     private JoystickViewModel joystickViewModel;
+    private BatteryViewModel batteryViewModel;
+    private MovementStatisticsViewModel movementViewModel;
+    private WarningViewModel warningViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        viewModelProvider = new ViewModelProvider(this);
-
-        joystickViewModel = viewModelProvider.get(JoystickViewModel.class);
+        // instantiate views
         JoystickView joystickView = findViewById(R.id.joystickView);
+        BatteryView batteryView = findViewById(R.id.batteryView);
+        TextView mileageTextView = findViewById(R.id.mileageTextView);
+        SpeedometerView speedometerView = findViewById(R.id.speedometerView);
+        TextView traveledTextView = findViewById(R.id.traveledTextView);
+
+        // instantiate view models
+        viewModelProvider = new ViewModelProvider(this);
+        joystickViewModel = viewModelProvider.get(JoystickViewModel.class);
+        batteryViewModel = viewModelProvider.get(BatteryViewModel.class);
+        movementViewModel = viewModelProvider.get(MovementStatisticsViewModel.class);
+        warningViewModel = viewModelProvider.get(WarningViewModel.class);
+
         joystickView.setOnMoveListener((angle, strength) ->
                 joystickViewModel.onJoystickMove(angle, strength));
 
-        BatteryView batteryView = findViewById(R.id.batteryView);
-        batteryViewModel = viewModelProvider.get(BatteryViewModel.class);
+        // observe view model variables and change views accordingly
         batteryViewModel.getBatteryCharge().observe(this, batteryLevel ->
                 batteryView.setBatteryLevel(batteryLevel / 100f));
+        batteryViewModel.getEstimatedMileage().observe(this, estimatedMileage ->
+                mileageTextView.setText(String.format("%d km", estimatedMileage)));
+        movementViewModel.getVelocity().observe(this, velocity ->
+                speedometerView.setVelocity(velocity * 3.6f));
+        movementViewModel.getDistanceTravelled().observe(this, distanceTravelled ->
+                traveledTextView.setText(String.format("%d km", distanceTravelled)));
 
-        SpeedometerView speedometerView = findViewById(R.id.speedometerView);
-        movementViewModel = viewModelProvider.get(MovementStatisticsViewModel.class);
-        movementViewModel.getVelocity().observe(this, velocity -> {
-            speedometerView.setVelocity(velocity * 3.6f);
-        });
+        // bind view models to the service
+        Intent intent = new Intent(this, NetworkClient.class);
+        bindService(intent, joystickViewModel.getConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, batteryViewModel.getConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, movementViewModel.getConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, warningViewModel.getConnection(), Context.BIND_AUTO_CREATE);
 
         // only for testing purposes
         AtomicReference<Float> s = new AtomicReference<>(0f);

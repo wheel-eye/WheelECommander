@@ -46,6 +46,10 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
         return batteryCharge;
     }
 
+    public MutableLiveData<Integer> getEstimatedMileage() {
+        return estimatedMileage;
+    }
+
     @Override
     public void handleMessage(Message msg) {
         if (msg.what == BATTERY_UPDATE.ordinal()) {
