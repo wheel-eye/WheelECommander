@@ -1,4 +1,4 @@
-package com.example.wheele_commander.model;
+package com.example.wheele_commander.viewmodel;
 
 public enum MessageType {
     /*

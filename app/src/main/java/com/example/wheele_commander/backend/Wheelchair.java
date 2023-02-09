@@ -1,4 +1,4 @@
-package com.example.wheele_commander.backend_thread;
+package com.example.wheele_commander.backend;
 
 public class Wheelchair {
     private boolean isParentalLockOn;

@@ -1,4 +1,4 @@
-package com.example.wheele_commander.backend_thread;
+package com.example.wheele_commander.backend;
 
 import android.app.Service;
 import android.content.Intent;
@@ -34,7 +34,7 @@ public final class NetworkClient extends Service implements INetworkClient {
     }
 
     public class NetworkClientBinder extends Binder {
-        INetworkClient getService() {
+        public INetworkClient getService() {
             return NetworkClient.this;
         }
     }

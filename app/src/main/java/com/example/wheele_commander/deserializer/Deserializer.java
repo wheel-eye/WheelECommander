@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Deserializer {
     private static Deserializer instance;
-    private final ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper;
 
     private Deserializer() {
         objectMapper = new ObjectMapper();

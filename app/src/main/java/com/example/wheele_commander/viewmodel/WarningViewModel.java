@@ -1,11 +1,13 @@
-package com.example.wheele_commander.model;
+package com.example.wheele_commander.viewmodel;
 
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Message;
 
-import backend_thread.NetworkClient;
+import com.example.wheele_commander.backend.INetworkClient;
+import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.IMessageSubscriber;
 
 public class WarningViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;
@@ -22,8 +24,8 @@ public class WarningViewModel implements IMessageSubscriber {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-            networkClient = binder.getService(binder);
-            networkClient.subscribe(this);
+            networkClient = binder.getService();
+            networkClient.subscribe(WarningViewModel.this);
         }
 
         @Override

@@ -1,15 +1,16 @@
-package com.example.wheele_commander.model;
-
-import static com.example.wheele_commander.model.MessageType.JOYSTICK_MOVEMENT;
+package com.example.wheele_commander.viewmodel;
 
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Message;
 
-import backend_thread.NetworkClient;
+import androidx.lifecycle.ViewModel;
 
-public class JoystickViewModel {
+import com.example.wheele_commander.backend.INetworkClient;
+import com.example.wheele_commander.backend.NetworkClient;
+
+public class JoystickViewModel extends ViewModel {
     private INetworkClient networkClient;
 
     public JoystickViewModel() {
@@ -17,7 +18,7 @@ public class JoystickViewModel {
 
     public void onJoystickMove(int angle, int power) {
         Message msg = Message.obtain();
-        msg.what = JOYSTICK_MOVEMENT.ordinal();
+        msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
         msg.arg1 = angle;
         msg.arg2 = power;
         networkClient.sendMessage(msg);
@@ -27,8 +28,7 @@ public class JoystickViewModel {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-            networkClient = binder.getService(binder);
-            networkClient.subscribe(this);
+            networkClient = binder.getService();
         }
 
         @Override

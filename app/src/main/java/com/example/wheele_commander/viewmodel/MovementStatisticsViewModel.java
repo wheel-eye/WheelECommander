@@ -1,6 +1,4 @@
-package com.example.wheele_commander.model;
-
-import static com.example.wheele_commander.model.MessageType.VELOCITY_UPDATE;
+package com.example.wheele_commander.viewmodel;
 
 import android.content.ComponentName;
 import android.content.ServiceConnection;
@@ -9,10 +7,13 @@ import android.os.Message;
 import android.os.SystemClock;
 
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
-import backend_thread.NetworkClient;
+import com.example.wheele_commander.backend.INetworkClient;
+import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.IMessageSubscriber;
 
-public class MovementStatisticsViewModel implements IMessageSubscriber {
+public class MovementStatisticsViewModel extends ViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;
     public final MutableLiveData<Integer> velocity;
     public final MutableLiveData<Integer> acceleration;
@@ -30,8 +31,8 @@ public class MovementStatisticsViewModel implements IMessageSubscriber {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-            networkClient = binder.getService(binder);
-            networkClient.subscribe(this);
+            networkClient = binder.getService();
+            networkClient.subscribe(MovementStatisticsViewModel.this);
         }
 
         @Override
@@ -43,9 +44,13 @@ public class MovementStatisticsViewModel implements IMessageSubscriber {
         return serviceConnection;
     }
 
+    public MutableLiveData<Integer> getVelocity() {
+        return velocity;
+    }
+
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what == VELOCITY_UPDATE.ordinal()) {
+        if (msg.what == MessageType.VELOCITY_UPDATE.ordinal()) {
             long currentReadingMillis = SystemClock.uptimeMillis();
             int newVelocity = msg.arg1; // may need to scale depending on units used by hardware
             int elapsedTime = (int) (currentReadingMillis - lastReadingMillis);
@@ -60,8 +65,8 @@ public class MovementStatisticsViewModel implements IMessageSubscriber {
             lastReadingMillis = currentReadingMillis;
         } else {
             try {
-                String errorMessage = "Expected msg.what =" + VELOCITY_UPDATE.name() +
-                        "(" + VELOCITY_UPDATE.ordinal() + "), got "
+                String errorMessage = "Expected msg.what =" + MessageType.VELOCITY_UPDATE.name() +
+                        "(" + MessageType.VELOCITY_UPDATE.ordinal() + "), got "
                         + MessageType.values()[msg.what] + "(" + msg.what + ")";
                 throw new IllegalArgumentException(errorMessage);
             } catch (IndexOutOfBoundsException e) {
