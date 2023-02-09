@@ -21,7 +21,7 @@ public class JoystickViewModel extends ViewModel {
         msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
         msg.arg1 = angle;
         msg.arg2 = power;
-        networkClient.sendMessage(msg);
+//        networkClient.sendMessage(msg);
     }
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
@@ -39,7 +39,7 @@ public class JoystickViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        unbindService(serviceConnection);
+//        unbindService(serviceConnection);
     }
 
     public ServiceConnection getServiceConnection() {

@@ -30,7 +30,7 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
             networkClient = binder.getService();
-            networkClient.subscribe(BatteryViewModel.this);
+//            networkClient.subscribe(BatteryViewModel.this);
         }
 
         @Override
@@ -41,7 +41,7 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
     @Override
     protected void onCleared() {
         super.onCleared();
-        unbindService(serviceConnection);
+//        unbindService(serviceConnection);
     }
 
     public ServiceConnection getServiceConnection() {

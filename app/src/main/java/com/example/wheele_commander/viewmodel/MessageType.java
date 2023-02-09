@@ -16,5 +16,6 @@ public enum MessageType {
     VELOCITY_UPDATE:
     arg1 = velocity
      */
-    VELOCITY_UPDATE
+    VELOCITY_UPDATE,
+    WARNING_MESSAGE
 }

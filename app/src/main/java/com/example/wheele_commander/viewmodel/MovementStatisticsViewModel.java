@@ -32,7 +32,7 @@ public class MovementStatisticsViewModel extends ViewModel implements IMessageSu
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
             networkClient = binder.getService();
-            networkClient.subscribe(MovementStatisticsViewModel.this);
+//            networkClient.subscribe(MovementStatisticsViewModel.this);
         }
 
         @Override
@@ -43,7 +43,7 @@ public class MovementStatisticsViewModel extends ViewModel implements IMessageSu
     @Override
     protected void onCleared() {
         super.onCleared();
-        unbindService(serviceConnection);
+//        unbindService(serviceConnection);
     }
 
     public ServiceConnection getServiceConnection() {

@@ -1,14 +1,18 @@
 package com.example.wheele_commander.ui;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
+import com.example.wheele_commander.backend.NetworkClient;
 import com.example.wheele_commander.viewmodel.BatteryViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
 import com.example.wheele_commander.viewmodel.MovementStatisticsViewModel;
@@ -60,10 +64,10 @@ public class MainActivity extends AppCompatActivity {
 
         // bind view models to the service
         Intent intent = new Intent(this, NetworkClient.class);
-        bindService(intent, joystickViewModel.getConnection(), Context.BIND_AUTO_CREATE);
-        bindService(intent, batteryViewModel.getConnection(), Context.BIND_AUTO_CREATE);
-        bindService(intent, movementViewModel.getConnection(), Context.BIND_AUTO_CREATE);
-        bindService(intent, warningViewModel.getConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, joystickViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, batteryViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, movementViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        bindService(intent, warningViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
 
         // only for testing purposes
         AtomicReference<Float> s = new AtomicReference<>(0f);

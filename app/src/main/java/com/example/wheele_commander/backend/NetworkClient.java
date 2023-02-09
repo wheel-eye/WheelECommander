@@ -12,15 +12,19 @@ import android.os.Process;
 
 import androidx.annotation.Nullable;
 
+import com.example.wheele_commander.viewmodel.MessageType;
+
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public final class NetworkClient extends Service implements INetworkClient {
     private static final String HARDWARE_IP = "172.20.118.23";
     private static final int HARDWARE_PORT_NUMBER = 5000;
     private IBinder networkClientBinder;
-    private List<IMessageSubscriber> subscribedViewModels;
+    private HashMap<MessageType, List<IMessageSubscriber>> subscribedViewModels;
     private HandlerThread senderHandlerThread;
     private ReceiverThread receiverThread;
     private Handler senderHandler;
@@ -72,7 +76,15 @@ public final class NetworkClient extends Service implements INetworkClient {
     }
 
     @Override
-    public void subscribe(IMessageSubscriber viewModel) {
-        subscribedViewModels.add(viewModel);
+    public void subscribe(IMessageSubscriber viewModel,
+                          List<MessageType> subscribedTypes) {
+        for (MessageType type : subscribedTypes) {
+            if (type == null)
+                continue;
+            if (!subscribedViewModels.containsKey(type)){
+                subscribedViewModels.putIfAbsent(type, new ArrayList<>());
+            }
+            subscribedViewModels.get(type).add(viewModel);
+        }
     }
 }

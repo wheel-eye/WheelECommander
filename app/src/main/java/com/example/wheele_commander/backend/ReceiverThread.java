@@ -1,9 +1,12 @@
 package com.example.wheele_commander.backend;
 
+import static com.example.wheele_commander.viewmodel.MessageType.*;
+
 import android.os.Handler;
 import android.os.Message;
 
 import com.example.wheele_commander.deserializer.Deserializer;
+import com.example.wheele_commander.viewmodel.MessageType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
