@@ -38,6 +38,12 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
         }
     };
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        unbindService(serviceConnection);
+    }
+
     public ServiceConnection getServiceConnection() {
         return serviceConnection;
     }

@@ -36,6 +36,12 @@ public class JoystickViewModel extends ViewModel {
         }
     };
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        unbindService(serviceConnection);
+    }
+
     public ServiceConnection getServiceConnection() {
         return serviceConnection;
     }

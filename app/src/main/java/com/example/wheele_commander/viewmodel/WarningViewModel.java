@@ -33,6 +33,12 @@ public class WarningViewModel implements IMessageSubscriber {
         }
     };
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        unbindService(serviceConnection);
+    }
+
     public ServiceConnection getServiceConnection() {
         return serviceConnection;
     }
