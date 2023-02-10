@@ -6,19 +6,22 @@ import android.os.Message;
 import androidx.annotation.NonNull;
 
 import android.os.Handler;
+import android.util.Log;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 public class SenderHandler extends Handler {
-    private final Socket socket;
+    private static final String TAG = "SenderHandler";
+    private static final int BUFFER_SIZE = 8;
+    private final ByteBuffer byteBuffer;
     private final DataOutputStream outputStream;
 
     public SenderHandler(Looper looper, Socket socket) {
         super(looper);
-
-        this.socket = socket;
+        byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
         try {
             outputStream = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
@@ -28,20 +31,14 @@ public class SenderHandler extends Handler {
 
     @Override
     public void handleMessage(@NonNull Message msg) {
-        switch (msg.what) {
-            case 1:
-                // Handle message 1
-                break;
-            case 2:
-                // Handle message 2
-                break;
-            default:
-                super.handleMessage(msg);
+        byteBuffer.clear();
+        byteBuffer.putInt(msg.arg1);
+        byteBuffer.putInt(msg.arg2);
+        try {
+            outputStream.write(byteBuffer.array());
+            outputStream.flush();
+        } catch (IOException e) {
+            Log.e(TAG, "Error writing to output stream: " + e.getMessage());
         }
-    }
-
-    private void sendThroughSocket(byte[] data) throws IOException {
-        outputStream.write(data);
-        outputStream.flush();
     }
 }

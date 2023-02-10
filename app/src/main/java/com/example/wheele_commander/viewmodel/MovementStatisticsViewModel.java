@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.INetworkClient;
 import com.example.wheele_commander.backend.NetworkClient;
-import com.example.wheele_commander.backend.IMessageSubscriber;
 
 public class MovementStatisticsViewModel extends ViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;

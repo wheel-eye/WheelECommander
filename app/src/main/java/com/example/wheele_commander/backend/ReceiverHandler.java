@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.example.wheele_commander.deserializer.SensorData;
 import com.example.wheele_commander.deserializer.SensorWarning;
+import com.example.wheele_commander.viewmodel.IMessageSubscriber;
 import com.example.wheele_commander.viewmodel.MessageType;
 
 import java.util.HashMap;
@@ -31,10 +32,10 @@ public class ReceiverHandler extends Handler {
             case 0:
                 Message msgWarning = new Message();
                 msgWarning.what = MessageType.WARNING_MESSAGE.ordinal();
-                msgWarning.arg1 = ((SensorWarning)msg.obj).getWarning().code;
-                for (IMessageSubscriber subscriber:
+                msgWarning.arg1 = ((SensorWarning) msg.obj).getWarning().code;
+                for (IMessageSubscriber subscriber :
                         Objects.requireNonNull(
-                                subscribedViewModels.get(MessageType.WARNING_MESSAGE))){
+                                subscribedViewModels.get(MessageType.WARNING_MESSAGE))) {
                     subscriber.handleMessage(msgWarning);
                 }
                 break;
@@ -44,7 +45,7 @@ public class ReceiverHandler extends Handler {
 //                for (MessageType type : )
 
                 msgData.what = MessageType.VELOCITY_UPDATE.ordinal();
-                msgData.arg1 = ((SensorData)msg.obj).getData().getSpeed();
+                msgData.arg1 = ((SensorData) msg.obj).getData().getSpeed();
                 break;
             default:
                 super.handleMessage(msg);

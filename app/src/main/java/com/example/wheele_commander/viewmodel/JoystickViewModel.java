@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 
@@ -11,28 +12,33 @@ import com.example.wheele_commander.backend.INetworkClient;
 import com.example.wheele_commander.backend.NetworkClient;
 
 public class JoystickViewModel extends ViewModel {
-    private INetworkClient networkClient;
+    private static final String TAG = "JoystickViewModel";
+    static INetworkClient networkClient;
 
     public JoystickViewModel() {
     }
 
     public void onJoystickMove(int angle, int power) {
-        Message msg = Message.obtain();
-        msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
-        msg.arg1 = angle;
-        msg.arg2 = power;
-//        networkClient.sendMessage(msg);
+        if (networkClient != null) {
+            Message msg = Message.obtain();
+            msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
+            msg.arg1 = angle;
+            msg.arg2 = power;
+            networkClient.sendMessage(msg);
+        }
     }
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d(TAG, "onServiceConnected: Connected to service");
             NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-            networkClient = binder.getService();
+            JoystickViewModel.networkClient = binder.getService();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.d(TAG, "onServiceDisconnected: Service disconnected");
         }
     };
 
@@ -46,3 +52,4 @@ public class JoystickViewModel extends ViewModel {
         return serviceConnection;
     }
 }
+

@@ -12,7 +12,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.INetworkClient;
 import com.example.wheele_commander.backend.NetworkClient;
-import com.example.wheele_commander.backend.IMessageSubscriber;
 
 public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
     public static final int MAXIMUM_MILEAGE = 12000; // represents 12km

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -24,6 +25,8 @@ import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 @SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+
     private ViewModelProvider viewModelProvider;
     private JoystickViewModel joystickViewModel;
     private BatteryViewModel batteryViewModel;
@@ -64,10 +67,12 @@ public class MainActivity extends AppCompatActivity {
 
         // bind view models to the service
         Intent intent = new Intent(this, NetworkClient.class);
-        bindService(intent, joystickViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-        bindService(intent, batteryViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-        bindService(intent, movementViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-        bindService(intent, warningViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        startService(intent);
+        Intent serviceBindIntent =  new Intent(this, NetworkClient.class);
+        bindService(serviceBindIntent, joystickViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+//        bindService(intent, batteryViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+//        bindService(intent, movementViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+//        bindService(intent, warningViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
 
         // only for testing purposes
         AtomicReference<Float> s = new AtomicReference<>(0f);
