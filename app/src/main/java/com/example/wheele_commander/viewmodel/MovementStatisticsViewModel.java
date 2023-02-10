@@ -64,12 +64,12 @@ public class MovementStatisticsViewModel extends ViewModel implements IMessageSu
             int newVelocity = msg.arg1; // may need to scale depending on units used by hardware
             int elapsedTime = (int) (currentReadingMillis - lastReadingMillis);
 
-            distanceTravelled.setValue(
-                    (newVelocity + velocity.getValue()) * elapsedTime / 2000
-            ); // velocity is never null
+            distanceTravelled.setValue(distanceTravelled.getValue()+
+                    (newVelocity + velocity.getValue()) * elapsedTime / 2 / 1000
+            ); // distanceTravelled and velocity are never null
             acceleration.setValue(
                     (newVelocity - velocity.getValue()) / elapsedTime / 1000
-            );
+            ); // 'can' result in division by 0 ArithmeticError
             velocity.setValue(newVelocity);
             lastReadingMillis = currentReadingMillis;
         } else {
