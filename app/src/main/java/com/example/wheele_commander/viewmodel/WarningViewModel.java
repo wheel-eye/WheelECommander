@@ -10,6 +10,14 @@ import androidx.lifecycle.ViewModel;
 import com.example.wheele_commander.backend.INetworkClient;
 import com.example.wheele_commander.backend.NetworkClient;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * handles warnings.
+ *
+ * @author Konrad Pawlikowski
+ * @author Peter Marks
+ */
 public class WarningViewModel extends ViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;
 
@@ -17,7 +25,7 @@ public class WarningViewModel extends ViewModel implements IMessageSubscriber {
     }
 
     @Override
-    public void handleMessage(Message msg) {
+    public void handleMessage(@NotNull Message msg) {
         // handle warning message
     }
 

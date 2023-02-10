@@ -23,8 +23,6 @@ import androidx.lifecycle.ViewModel;
  * @author Konrad Pawlikowski
  * @author Peter Marks
  * @see com.example.wheele_commander.viewmodel.MessageType
- * @version 0.9
- * @since 08/02/2023
  */
 public class JoystickViewModel extends ViewModel {
     private static final String TAG = "JoystickViewModel";
@@ -38,8 +36,6 @@ public class JoystickViewModel extends ViewModel {
      *
      * @param angle see (link joystick source)
      * @param power see (link joystick source)
-     *
-     * @since 0.9
      */
     public void onJoystickMove(int angle, int power) {
         if (networkClient != null) {

@@ -9,17 +9,29 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.INetworkClient;
 import com.example.wheele_commander.backend.NetworkClient;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * stores velocity related information of the connected hardware and handles {@code VELOCITY_UPDATE} messages.
+ *
+ * Velocity related information refers to (total) distance, velocity, and acceleration.
+ *
+ * @author Konrad Pawlikowski
+ * @author Peter Marks
+ * @see com.example.wheele_commander.viewmodel.MessageType
+ */
 public class MovementStatisticsViewModel extends ViewModel implements IMessageSubscriber {
     private INetworkClient networkClient;
-    public final MutableLiveData<Integer> velocity;
-    public final MutableLiveData<Integer> acceleration;
-    public final MutableLiveData<Integer> distanceTravelled;
+    private final MutableLiveData<Integer> velocity;
+    private final MutableLiveData<Integer> acceleration;
+    private final MutableLiveData<Integer> distanceTravelled;
     private Long lastReadingMillis;
 
     public MovementStatisticsViewModel() {
@@ -52,16 +64,51 @@ public class MovementStatisticsViewModel extends ViewModel implements IMessageSu
         return serviceConnection;
     }
 
-    public MutableLiveData<Integer> getVelocity() {
+    /**
+     * returns the current acceleration of the connected hardware.
+     *
+     * @return Returns the acceleration of the hardware battery where each unit represents a
+     * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per square second
+     * (dm/s^2).
+     */
+    public LiveData<Integer> getAcceleration() {
+        return acceleration;
+    }
+
+    /**
+     * returns the current velocity of the connected hardware.
+     *
+     * @return Returns the velocity of the hardware where each unit represents
+     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per second
+     * (dm/s).
+     */
+    public LiveData<Integer> getVelocity() {
         return velocity;
     }
 
-    public MutableLiveData<Integer> getDistanceTravelled() {
+    /**
+     * returns the total distance travelled of the connected hardware during this session.
+     *
+     * @return Returns the distance travelled by the hardware where each unit represents
+     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
+     */
+    public LiveData<Integer> getDistanceTravelled() {
         return distanceTravelled;
     }
 
+    /**
+     * Takes a {@code VELOCITY_UPDATE} message and updates the current {@code distanceTravelled},
+     * {@code velocity} and {@code acceleration}.
+     *
+     * @param msg refer to {@link MessageType}.{@code VELOCITY_UPDATE} for clear specifications
+     * on the message structure.
+     *
+     * @exception  IllegalArgumentException Thrown when given a message that isn't a
+     * {@code VELOCITY_UPDATE}.
+     * @exception IndexOutOfBoundsException Thrown when given an unknown message nominal.
+     */
     @Override
-    public void handleMessage(Message msg) {
+    public void handleMessage(@NotNull Message msg) {
         if (msg.what == VELOCITY_UPDATE.ordinal()) {
             long currentReadingMillis = SystemClock.uptimeMillis();
             int newVelocity = msg.arg1; // may need to scale depending on units used by hardware

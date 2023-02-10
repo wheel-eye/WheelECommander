@@ -7,8 +7,6 @@ package com.example.wheele_commander.viewmodel;
  * <pre>{@code msg.what = MessageType.BATTERY_UPDATE.ordinal();}</pre>
  *
  * @author Konrad Pawlikowski
- * @version 1.0
- * @since 06/02/2023
  */
 public enum MessageType {
     /**
@@ -19,8 +17,6 @@ public enum MessageType {
      * msg.arg1 = joystick_angle;
      * msg.arg2 = joystick_power;
      * }</pre>
-     *
-     * @since 1.0
      */
     JOYSTICK_MOVEMENT,
     /**
@@ -30,8 +26,6 @@ public enum MessageType {
      * <pre>{@code
      * msg.arg1 = battery_charge;
      * }</pre>
-     *
-     * @since 1.0
      */
     BATTERY_UPDATE,
     /**
@@ -41,8 +35,6 @@ public enum MessageType {
      * <pre>{@code
      * msg.arg1 = forward_velocity;
      * }</pre>
-     *
-     * @since 1.0
      */
     VELOCITY_UPDATE,
     // WARNING_MESSAGE should be replaced with a separate WarningType.

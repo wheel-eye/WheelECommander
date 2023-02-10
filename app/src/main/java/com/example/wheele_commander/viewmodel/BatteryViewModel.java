@@ -17,16 +17,12 @@ import com.example.wheele_commander.backend.NetworkClient;
 
 import org.jetbrains.annotations.NotNull;
 
-import kotlin.jvm.Throws;
-
 /**
  * stores information on the battery of the connected hardware and handles {@code BATTERY_UPDATE} messages.
  *
  * @author Konrad Pawlikowski
  * @author Peter Marks
  * @see com.example.wheele_commander.viewmodel.MessageType
- * @version 1.0
- * @since 08/02/2023
  */
 public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
     /**
@@ -35,8 +31,6 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
      * each unit represents a
      * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>
      * so that a view may display results with 1 decimal point of precision.
-     *
-     * @since 1.0
      */
     public static final int MAXIMUM_MILEAGE = 120000;
     private final MutableLiveData<Integer> batteryCharge;
@@ -76,9 +70,6 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
      *
      * @return Returns the charge of the hardware battery where each unit represents 0.1%
      * of battery charge.
-     *
-     * @see LiveData
-     * @since 1.0
      */
     public LiveData<Integer> getBatteryCharge() {
         return batteryCharge;
@@ -89,9 +80,6 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
      *
      * @return Returns the estimated mileage of the hardware where each unit represents
      * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
-     *
-     * @see LiveData
-     * @since 1.0
      */
     public LiveData<Integer> getEstimatedMileage() {
         return estimatedMileage;
@@ -107,8 +95,6 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
      * @exception  IllegalArgumentException Thrown when given a message that isn't a
      * {@code BATTERY_UPDATE}.
      * @exception IndexOutOfBoundsException Thrown when given an unknown message nominal.
-     *
-     * @since 1.0
      */
     @Override
     public void handleMessage(@NotNull Message msg) {
