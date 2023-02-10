@@ -24,8 +24,7 @@ import kotlin.jvm.Throws;
  *
  * @author Konrad Pawlikowski
  * @author Peter Marks
- * @see com.example.wheele_commander.viewmodel.IMessageSubscriber
- * @see androidx.lifecycle.ViewModel
+ * @see com.example.wheele_commander.viewmodel.MessageType
  * @version 1.0
  * @since 08/02/2023
  */
@@ -42,7 +41,7 @@ public class BatteryViewModel extends ViewModel implements IMessageSubscriber {
     public static final int MAXIMUM_MILEAGE = 120000;
     private final MutableLiveData<Integer> batteryCharge;
     private final MutableLiveData<Integer> estimatedMileage;
-    private INetworkClient networkClient;
+    private static INetworkClient networkClient;
 
     public BatteryViewModel() {
         batteryCharge = new MutableLiveData<>(1000);

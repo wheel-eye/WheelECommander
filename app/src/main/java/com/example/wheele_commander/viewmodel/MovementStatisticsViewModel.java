@@ -1,7 +1,10 @@
 package com.example.wheele_commander.viewmodel;
 
+import static com.example.wheele_commander.viewmodel.MessageType.VELOCITY_UPDATE;
+
 import android.content.ComponentName;
 import android.content.ServiceConnection;
+
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
@@ -59,7 +62,7 @@ public class MovementStatisticsViewModel extends ViewModel implements IMessageSu
 
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what == MessageType.VELOCITY_UPDATE.ordinal()) {
+        if (msg.what == VELOCITY_UPDATE.ordinal()) {
             long currentReadingMillis = SystemClock.uptimeMillis();
             int newVelocity = msg.arg1; // may need to scale depending on units used by hardware
             int elapsedTime = (int) (currentReadingMillis - lastReadingMillis);

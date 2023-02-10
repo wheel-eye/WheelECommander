@@ -1,27 +1,50 @@
 package com.example.wheele_commander.viewmodel;
 
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.os.Message;
-import android.util.Log;
-
-import androidx.lifecycle.ViewModel;
+import static com.example.wheele_commander.viewmodel.MessageType.JOYSTICK_MOVEMENT;
 
 import com.example.wheele_commander.backend.INetworkClient;
 import com.example.wheele_commander.backend.NetworkClient;
 
+import android.content.ComponentName;
+import android.content.ServiceConnection;
+
+import android.os.IBinder;
+import android.os.Message;
+
+import android.util.Log;
+
+import androidx.lifecycle.ViewModel;
+
+/**
+ * relays joystick user input to {@link NetworkClient} such that it may be sent to the connected hardware.
+ *
+ * Sends {@code JOYSTICK_MOVEMENT} messages.
+ *
+ * @author Konrad Pawlikowski
+ * @author Peter Marks
+ * @see com.example.wheele_commander.viewmodel.MessageType
+ * @version 0.9
+ * @since 08/02/2023
+ */
 public class JoystickViewModel extends ViewModel {
     private static final String TAG = "JoystickViewModel";
-    static INetworkClient networkClient;
+    private static INetworkClient networkClient;
 
     public JoystickViewModel() {
     }
 
+    /**
+     * relays joystick user input to {@link NetworkClient} such that it may be sent to the connected hardware.
+     *
+     * @param angle see (link joystick source)
+     * @param power see (link joystick source)
+     *
+     * @since 0.9
+     */
     public void onJoystickMove(int angle, int power) {
         if (networkClient != null) {
             Message msg = Message.obtain();
-            msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
+            msg.what = JOYSTICK_MOVEMENT.ordinal();
             msg.arg1 = angle;
             msg.arg2 = power;
             networkClient.sendMessage(msg);
