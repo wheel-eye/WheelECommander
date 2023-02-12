@@ -12,13 +12,11 @@ import android.os.Process;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-
-import com.example.wheele_commander.viewmodel.AbstractViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class NetworkClient extends Service implements INetworkClient {
     private static final String TAG = "NetworkClient";
@@ -32,9 +30,9 @@ public final class NetworkClient extends Service implements INetworkClient {
     private Handler senderHandler;
     private Handler receiverHandler;
     private Socket socket;
-    private AbstractViewModel movementStatisticsViewModel;
-    private AbstractViewModel batteryViewModel;
-    private AbstractViewModel warningViewModel;
+    private final MutableLiveData<Message> movementMessageData = new MutableLiveData<>();
+    private final MutableLiveData<Message> batteryMessageData = new MutableLiveData<>();
+    private final MutableLiveData<Message> warningMessageData = new MutableLiveData<>();
 
     @NonNull
     @Override
@@ -52,14 +50,9 @@ public final class NetworkClient extends Service implements INetworkClient {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate: Network Client Service created");
-    }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand: Network Client Service started");
         // essential as Android doesn't allow socket set-up in main thread -> NetworkOnMainThreadException
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
+        Thread initializationThread = new Thread(() -> {
             try {
                 socket = new Socket(HARDWARE_IP, HARDWARE_PORT_NUMBER);
 
@@ -67,26 +60,18 @@ public final class NetworkClient extends Service implements INetworkClient {
                 senderHandlerThread.start();
                 senderHandler = new SenderHandler(senderHandlerThread.getLooper(), socket);
 
-                /* TODO: This is a short term fix! Service is started sooner,
-                    than the view models get to bind, then these references will be null
-                 */
-                while (movementStatisticsViewModel == null || batteryViewModel == null || warningViewModel == null) {
-                }
-
-                System.out.println(warningViewModel);
                 receiverHandler = new ReceiverHandler(
                         Looper.getMainLooper(),
-                        movementStatisticsViewModel,
-                        batteryViewModel,
-                        warningViewModel);
+                        movementMessageData,
+                        batteryMessageData,
+                        warningMessageData);
                 receiverThread = new ReceiverThread(receiverHandler, socket);
                 receiverThread.start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-
-        return super.onStartCommand(intent, flags, startId);
+        initializationThread.start();
     }
 
     @Override
@@ -100,16 +85,15 @@ public final class NetworkClient extends Service implements INetworkClient {
         senderHandler.sendMessage(msg);
     }
 
-    public void setMovementStatisticsViewModel(AbstractViewModel movementStatisticsViewModel) {
-        this.movementStatisticsViewModel = movementStatisticsViewModel;
+    public LiveData<Message> getMovementMessage() {
+        return movementMessageData;
     }
 
-    public void setBatteryViewModel(AbstractViewModel batteryViewModel) {
-        this.batteryViewModel = batteryViewModel;
+    public LiveData<Message> getBatteryMessage() {
+        return batteryMessageData;
     }
 
-    public void setWarningViewModel(AbstractViewModel warningViewModel) {
-        System.out.println("Setting warningViewModel to: " + warningViewModel);
-        this.warningViewModel = warningViewModel;
+    public LiveData<Message> getWarningMessage() {
+        return warningMessageData;
     }
 }

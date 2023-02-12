@@ -1,7 +1,6 @@
 package com.example.wheele_commander.ui;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -11,10 +10,15 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
 import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.viewmodel.AbstractViewModel;
 import com.example.wheele_commander.viewmodel.BatteryViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
 import com.example.wheele_commander.viewmodel.MovementStatisticsViewModel;
 import com.example.wheele_commander.viewmodel.WarningViewModel;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
@@ -54,19 +58,16 @@ public class MainActivity extends AppCompatActivity {
         batteryViewModel.getBatteryCharge().observe(this, batteryLevel ->
                 batteryView.setBatteryLevel(batteryLevel / 100f));
         batteryViewModel.getEstimatedMileage().observe(this, estimatedMileage ->
-                mileageTextView.setText(String.format("%d km", estimatedMileage)));
+                mileageTextView.setText(String.format(Locale.UK, "%d km", estimatedMileage)));
         movementViewModel.getVelocity().observe(this, speedometerView::setVelocity);
         movementViewModel.getDistanceTravelled().observe(this, distanceTravelled ->
-                traveledTextView.setText(String.format("%d km", distanceTravelled)));
+                traveledTextView.setText(String.format(Locale.UK, "%.2f km", distanceTravelled)));
 
         // bind view models to the service
         Intent startIntent = new Intent(this, NetworkClient.class);
         startService(startIntent);
-
+        List<AbstractViewModel> viewModels = Arrays.asList(joystickViewModel, batteryViewModel, movementViewModel, warningViewModel);
         Intent bindIntent = new Intent(this, NetworkClient.class);
-        bindService(bindIntent, joystickViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-        bindService(bindIntent, batteryViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-        bindService(bindIntent, movementViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-        bindService(bindIntent, warningViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        viewModels.forEach(viewModel -> bindService(bindIntent, viewModel.getServiceConnection(), BIND_AUTO_CREATE));
     }
 }

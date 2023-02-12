@@ -15,6 +15,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.wheele_commander.backend.NetworkClient;
 
+import java.util.Locale;
+
 /**
  * stores information on the battery of the connected hardware and handles {@code BATTERY_UPDATE} messages.
  *
@@ -37,7 +39,7 @@ public class BatteryViewModel extends AbstractViewModel {
 
     public BatteryViewModel(@NonNull Application application) {
         super(application);
-        batteryCharge = new MutableLiveData<>(1000);
+        batteryCharge = new MutableLiveData<>(100);
         estimatedMileage = new MutableLiveData<>(MAXIMUM_MILEAGE);
         serviceConnection = new ServiceConnection() {
             @Override
@@ -45,7 +47,9 @@ public class BatteryViewModel extends AbstractViewModel {
                 Log.d(TAG, "onServiceConnected: Connected to service");
                 NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
                 networkClient = binder.getService();
-                networkClient.setBatteryViewModel(BatteryViewModel.this);
+
+                // TODO: evil, but better than passing reference to NetworkClient via setter
+                networkClient.getBatteryMessage().observeForever(messageObserver);
             }
 
             @Override
@@ -53,6 +57,12 @@ public class BatteryViewModel extends AbstractViewModel {
                 Log.d(TAG, "onServiceDisconnected: Service disconnected");
             }
         };
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        networkClient.getBatteryMessage().removeObserver(messageObserver);
     }
 
     /**
@@ -88,17 +98,19 @@ public class BatteryViewModel extends AbstractViewModel {
     @Override
     public void handleMessage(Message msg) {
         if (msg.what == BATTERY_UPDATE.ordinal()) {
-            batteryCharge.postValue(msg.arg1);
-            estimatedMileage.postValue(MAXIMUM_MILEAGE / batteryCharge.getValue() * 1000);
+            int newBatteryCharge = msg.arg1;
+            batteryCharge.postValue(newBatteryCharge);
+            int newEstimatedMileage = newBatteryCharge == 0 ? 0 : MAXIMUM_MILEAGE / newBatteryCharge * 100;
+            estimatedMileage.postValue(newEstimatedMileage);
         } else {
-            try {
-                String errorMessage = "Expected msg.what =" + BATTERY_UPDATE.name() +
-                        "(" + BATTERY_UPDATE.ordinal() + "), got "
-                        + MessageType.values()[msg.what] + "(" + msg.what + ")";
-                throw new IllegalArgumentException(errorMessage);
-            } catch (IndexOutOfBoundsException e) {
-                throw new IndexOutOfBoundsException("Message does not exist");
-            }
+            String errorMessage = String.format(
+                    Locale.UK,
+                    "Expected msg.what = %s (%d), got %s (%d)",
+                    BATTERY_UPDATE.name(),
+                    BATTERY_UPDATE.ordinal(),
+                    MessageType.values()[msg.what].name(),
+                    msg.what);
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 }

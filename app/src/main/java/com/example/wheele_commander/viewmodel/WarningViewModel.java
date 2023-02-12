@@ -41,7 +41,9 @@ public class WarningViewModel extends AbstractViewModel {
                 Log.d(TAG, "onServiceConnected: Connected to service");
                 NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
                 networkClient = binder.getService();
-                networkClient.setWarningViewModel(WarningViewModel.this);
+
+                // TODO: evil, but better than passing reference to NetworkClient via setter
+                networkClient.getWarningMessage().observeForever(messageObserver);
             }
 
             @Override
@@ -49,6 +51,12 @@ public class WarningViewModel extends AbstractViewModel {
                 Log.d(TAG, "onServiceDisconnected: Service disconnected");
             }
         };
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        networkClient.getWarningMessage().removeObserver(messageObserver);
     }
 
     @Override
