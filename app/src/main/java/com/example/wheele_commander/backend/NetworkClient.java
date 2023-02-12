@@ -6,20 +6,17 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.wheele_commander.viewmodel.IMessageSubscriber;
-import com.example.wheele_commander.viewmodel.MessageType;
+import com.example.wheele_commander.viewmodel.AbstractViewModel;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,14 +25,16 @@ public final class NetworkClient extends Service implements INetworkClient {
 
     //    private static final String HARDWARE_IP = "172.20.118.23";
     private static final String HARDWARE_IP = "100.90.35.131";
-    private static final int HARDWARE_PORT_NUMBER = 12345;
+    private static final int HARDWARE_PORT_NUMBER = 5000;
     private final IBinder networkClientBinder = new NetworkClientBinder();
-    private HashMap<MessageType, List<IMessageSubscriber>> subscribedViewModels;
     private HandlerThread senderHandlerThread;
     private ReceiverThread receiverThread;
     private Handler senderHandler;
     private Handler receiverHandler;
     private Socket socket;
+    private AbstractViewModel movementStatisticsViewModel;
+    private AbstractViewModel batteryViewModel;
+    private AbstractViewModel warningViewModel;
 
     @NonNull
     @Override
@@ -44,7 +43,7 @@ public final class NetworkClient extends Service implements INetworkClient {
     }
 
     public class NetworkClientBinder extends Binder {
-        public INetworkClient getService() {
+        public NetworkClient getService() {
             return NetworkClient.this;
         }
     }
@@ -52,7 +51,12 @@ public final class NetworkClient extends Service implements INetworkClient {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "onCreate: Network Client Service created");
+    }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand: Network Client Service started");
         // essential as Android doesn't allow socket set-up in main thread -> NetworkOnMainThreadException
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
@@ -62,36 +66,50 @@ public final class NetworkClient extends Service implements INetworkClient {
                 senderHandlerThread = new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
                 senderHandlerThread.start();
                 senderHandler = new SenderHandler(senderHandlerThread.getLooper(), socket);
+
+                /* TODO: This is a short term fix! Service is started sooner,
+                    than the view models get to bind, then these references will be null
+                 */
+                while (movementStatisticsViewModel == null || batteryViewModel == null || warningViewModel == null) {
+                }
+
+                System.out.println(warningViewModel);
+                receiverHandler = new ReceiverHandler(
+                        Looper.getMainLooper(),
+                        movementStatisticsViewModel,
+                        batteryViewModel,
+                        warningViewModel);
+                receiverThread = new ReceiverThread(receiverHandler, socket);
+                receiverThread.start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
 
-//        receiverHandler = new ReceiverHandler(Looper.getMainLooper(), subscribedViewModels);
-//        receiverThread = new ReceiverThread(receiverHandler, socket);
-//        receiverThread.start();
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         senderHandlerThread.quitSafely();
-//        receiverThread.stopThread();
+        receiverThread.stopThread();
     }
 
     public void sendMessage(Message msg) {
         senderHandler.sendMessage(msg);
     }
 
-    @Override
-    public void subscribe(IMessageSubscriber viewModel, List<MessageType> subscribedTypes) {
-        for (MessageType type : subscribedTypes) {
-            if (type == null)
-                continue;
-            if (!subscribedViewModels.containsKey(type)) {
-                subscribedViewModels.putIfAbsent(type, new ArrayList<>());
-            }
-            Objects.requireNonNull(subscribedViewModels.get(type)).add(viewModel);
-        }
+    public void setMovementStatisticsViewModel(AbstractViewModel movementStatisticsViewModel) {
+        this.movementStatisticsViewModel = movementStatisticsViewModel;
+    }
+
+    public void setBatteryViewModel(AbstractViewModel batteryViewModel) {
+        this.batteryViewModel = batteryViewModel;
+    }
+
+    public void setWarningViewModel(AbstractViewModel warningViewModel) {
+        System.out.println("Setting warningViewModel to: " + warningViewModel);
+        this.warningViewModel = warningViewModel;
     }
 }

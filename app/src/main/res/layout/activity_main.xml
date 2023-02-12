@@ -9,16 +9,11 @@
     android:clickable="true"
     android:padding="30dp">
 
-    <View
-        android:id="@+id/view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
     <com.example.wheele_commander.ui.SpeedometerView
         android:id="@+id/speedometerView"
         android:layout_width="291dp"
         android:layout_height="289dp"
-        android:layout_marginTop="75dp"
+        android:layout_marginTop="16dp"
         app:borderColor="#21304F"
         app:borderSize="20dp"
         app:fillColor="#8721DF"
@@ -98,31 +93,12 @@
         android:id="@+id/batteryView"
         android:layout_width="216dp"
         android:layout_height="260dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="52dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
         app:waveBackColor="#5E18B8"
         app:waveFrontColor="#8721DF" />
-
-    <Button
-        android:id="@+id/minus"
-        android:layout_width="94dp"
-        android:layout_height="33dp"
-        android:text="MINUS"
-        android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/plus"
-        android:layout_width="94dp"
-        android:layout_height="33dp"
-        android:text="PLUS"
-        android:textSize="10sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView2"

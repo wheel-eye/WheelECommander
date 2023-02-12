@@ -1,27 +1,30 @@
 package com.example.wheele_commander.backend;
 
-import static com.example.wheele_commander.viewmodel.MessageType.*;
-
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
-import com.example.wheele_commander.deserializer.Deserializer;
-import com.example.wheele_commander.viewmodel.MessageType;
+import com.example.wheele_commander.deserializer.Data;
+import com.example.wheele_commander.deserializer.JsonDeserializer;
+import com.example.wheele_commander.deserializer.Warning;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class ReceiverThread extends Thread {
-    private final Socket socket;
+    private final InputStream inputStream;
     private final Handler receiverHandler;
     private boolean running;
 
     public ReceiverThread(Handler receiverHandler, Socket socket) {
         this.receiverHandler = receiverHandler;
-        this.socket = socket;
+        try {
+            inputStream = socket.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         running = true;
     }
 
@@ -29,11 +32,10 @@ public class ReceiverThread extends Thread {
     public void run() {
         while (running) {
             try {
-                InputStream inputStream = socket.getInputStream();
-                byte[] inputBytes = readToByteArray(inputStream);
-                receiverHandler.handleMessage(deserializeToMessage(inputBytes));
+                String payload = readInputStream();
+                receiverHandler.handleMessage(payloadToMessage(payload));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                stopThread();
             }
         }
     }
@@ -42,29 +44,26 @@ public class ReceiverThread extends Thread {
         running = false;
     }
 
-    private byte[] readToByteArray(InputStream stream) throws IOException {
-        int nRead;
-        byte[] data = new byte[4];
+    private String readInputStream() throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        while ((nRead = stream.read(data, 0, data.length)) != 0) {
-            outputStream.write(data, 0, nRead);
-        }
-
-        outputStream.flush();
-        return outputStream.toByteArray();
+        byte[] buffer = new byte[1024];
+        inputStream.read(buffer);
+        outputStream.write(buffer);
+        return outputStream.toString("UTF-8");
     }
 
-    private Message deserializeToMessage(byte[] stream) {
-        byte[] data = Arrays.copyOfRange(stream, 1, stream.length);
+    private Message payloadToMessage(String payload) {
+        int messageType = Character.getNumericValue(payload.charAt(0));
+        String json = payload.substring(1);
+
         Message msg = new Message();
-        if (Byte.toUnsignedInt(stream[0]) == 0) {
-            msg.what = 0;
-            msg.obj = Deserializer.getWarning(data);
-        } else {
-            msg.what = 1;
-            msg.obj = Deserializer.getData(data);
-        }
+        msg.what = messageType;
+
+        if (messageType == 0)
+            msg.obj = JsonDeserializer.getInstance().deserialize(json, Data.class);
+        else if (messageType == 1)
+            msg.obj = JsonDeserializer.getInstance().deserialize(json, Warning.class);
+
         return msg;
     }
 }

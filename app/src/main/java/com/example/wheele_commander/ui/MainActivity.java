@@ -4,12 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
@@ -18,8 +15,6 @@ import com.example.wheele_commander.viewmodel.BatteryViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
 import com.example.wheele_commander.viewmodel.MovementStatisticsViewModel;
 import com.example.wheele_commander.viewmodel.WarningViewModel;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
@@ -53,44 +48,25 @@ public class MainActivity extends AppCompatActivity {
         warningViewModel = viewModelProvider.get(WarningViewModel.class);
 
         joystickView.setOnMoveListener((angle, strength) ->
-                joystickViewModel.onJoystickMove(angle, strength));
+                joystickViewModel.onJoystickMove(angle, strength), 17);
 
         // observe view model variables and change views accordingly
         batteryViewModel.getBatteryCharge().observe(this, batteryLevel ->
                 batteryView.setBatteryLevel(batteryLevel / 100f));
         batteryViewModel.getEstimatedMileage().observe(this, estimatedMileage ->
                 mileageTextView.setText(String.format("%d km", estimatedMileage)));
-        movementViewModel.getVelocity().observe(this, velocity ->
-                speedometerView.setVelocity(velocity * 3.6f));
+        movementViewModel.getVelocity().observe(this, speedometerView::setVelocity);
         movementViewModel.getDistanceTravelled().observe(this, distanceTravelled ->
                 traveledTextView.setText(String.format("%d km", distanceTravelled)));
 
         // bind view models to the service
-        Intent intent = new Intent(this, NetworkClient.class);
-        startService(intent);
-        Intent serviceBindIntent =  new Intent(this, NetworkClient.class);
-        bindService(serviceBindIntent, joystickViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-//        bindService(intent, batteryViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-//        bindService(intent, movementViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
-//        bindService(intent, warningViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        Intent startIntent = new Intent(this, NetworkClient.class);
+        startService(startIntent);
 
-        // only for testing purposes
-        AtomicReference<Float> s = new AtomicReference<>(0f);
-        AtomicReference<Float> b = new AtomicReference<>(0f);
-        Button buttonPlus = findViewById(R.id.plus);
-        Button buttonMinus = findViewById(R.id.minus);
-        buttonPlus.setOnClickListener(view -> {
-            s.updateAndGet(v -> v + 0.25f);
-            b.updateAndGet(v -> v + 0.05f);
-            System.out.println(b.get());
-            speedometerView.setVelocity(s.get());
-            batteryView.setBatteryLevel(b.get());
-        });
-        buttonMinus.setOnClickListener(view -> {
-            s.updateAndGet(v -> v - 0.25f);
-            b.updateAndGet(v -> v - 0.05f);
-            speedometerView.setVelocity(s.get());
-            batteryView.setBatteryLevel(b.get());
-        });
+        Intent bindIntent = new Intent(this, NetworkClient.class);
+        bindService(bindIntent, joystickViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        bindService(bindIntent, batteryViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        bindService(bindIntent, movementViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+        bindService(bindIntent, warningViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
     }
 }

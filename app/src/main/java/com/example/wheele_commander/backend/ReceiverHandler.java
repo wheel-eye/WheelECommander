@@ -1,54 +1,54 @@
 package com.example.wheele_commander.backend;
 
-
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
 import androidx.annotation.NonNull;
 
-import com.example.wheele_commander.deserializer.SensorData;
-import com.example.wheele_commander.deserializer.SensorWarning;
-import com.example.wheele_commander.viewmodel.IMessageSubscriber;
+import com.example.wheele_commander.deserializer.Data;
+import com.example.wheele_commander.deserializer.Warning;
+import com.example.wheele_commander.viewmodel.AbstractViewModel;
 import com.example.wheele_commander.viewmodel.MessageType;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-
 public class ReceiverHandler extends Handler {
-    private final HashMap<MessageType, List<IMessageSubscriber>> subscribedViewModels;
+    private final AbstractViewModel movementStatisticsViewModel;
+    private final AbstractViewModel batteryViewModel;
+    private final AbstractViewModel warningViewModel;
 
-    public ReceiverHandler(Looper looper,
-                           HashMap<MessageType, List<IMessageSubscriber>> subscribedViewModels) {
+    public ReceiverHandler(
+            Looper looper,
+            AbstractViewModel movementStatisticsViewModel,
+            AbstractViewModel batteryViewModel,
+            AbstractViewModel warningViewModel) {
         super(looper);
-        this.subscribedViewModels = subscribedViewModels;
+        this.movementStatisticsViewModel = movementStatisticsViewModel;
+        this.batteryViewModel = batteryViewModel;
+        this.warningViewModel = warningViewModel;
     }
 
     @Override
     public void handleMessage(@NonNull Message msg) {
-        switch (msg.what) {
-            // WARNING
-            case 0:
-                Message msgWarning = new Message();
-                msgWarning.what = MessageType.WARNING_MESSAGE.ordinal();
-                msgWarning.arg1 = ((SensorWarning) msg.obj).getWarning().code;
-                for (IMessageSubscriber subscriber :
-                        Objects.requireNonNull(
-                                subscribedViewModels.get(MessageType.WARNING_MESSAGE))) {
-                    subscriber.handleMessage(msgWarning);
-                }
-                break;
-            // DATA
-            case 1:
-                Message msgData = new Message();
-//                for (MessageType type : )
+        if (msg.what == 0) { // DATA
+            Data data = (Data) msg.obj;
 
-                msgData.what = MessageType.VELOCITY_UPDATE.ordinal();
-                msgData.arg1 = ((SensorData) msg.obj).getData().getSpeed();
-                break;
-            default:
-                super.handleMessage(msg);
+            if (data.getSpeed() != null) {
+                Message velocityMessage = new Message();
+                velocityMessage.what = MessageType.VELOCITY_UPDATE.ordinal();
+                velocityMessage.arg1 = data.getSpeed();
+                movementStatisticsViewModel.handleMessage(velocityMessage);
+            }
+            if (data.getBattery() != null) {
+                Message batteryMessage = new Message();
+                batteryMessage.what = MessageType.BATTERY_UPDATE.ordinal();
+                batteryMessage.arg1 = data.getBattery();
+                batteryViewModel.handleMessage(batteryMessage);
+            }
+        } else if (msg.what == 1) { // WARNING
+            Message warningMessage = new Message();
+            warningMessage.what = MessageType.WARNING_MESSAGE.ordinal();
+            warningMessage.arg1 = ((Warning) msg.obj).getCode();
+            warningViewModel.handleMessage(warningMessage);
         }
     }
 }

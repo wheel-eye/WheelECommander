@@ -3,16 +3,16 @@ package com.example.wheele_commander.deserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Data {
-    private int battery;
-    private int speed;
+    private Integer battery;
+    private Integer speed;
 
     @JsonProperty("battery")
-    public int getBattery() {
+    public Integer getBattery() {
         return battery;
     }
 
     @JsonProperty("speed")
-    public int getSpeed() {
+    public Integer getSpeed() {
         return speed;
     }
 }
