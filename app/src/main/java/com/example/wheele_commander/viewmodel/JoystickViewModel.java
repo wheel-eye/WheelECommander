@@ -11,6 +11,15 @@ import androidx.annotation.NonNull;
 
 import com.example.wheele_commander.backend.NetworkClient;
 
+/**
+ * relays joystick user input to {@link NetworkClient} such that it may be sent to the connected hardware.
+ * <p>
+ * Sends {@code JOYSTICK_MOVEMENT} messages.
+ *
+ * @author Konrad Pawlikowski
+ * @author Peter Marks
+ * @see com.example.wheele_commander.viewmodel.MessageType
+ */
 public class JoystickViewModel extends AbstractViewModel {
     private static final String TAG = "JoystickViewModel";
 
@@ -31,6 +40,12 @@ public class JoystickViewModel extends AbstractViewModel {
         };
     }
 
+    /**
+     * relays joystick user input to {@link NetworkClient} such that it may be sent to the connected hardware.
+     *
+     * @param angle see (link joystick source)
+     * @param power see (link joystick source)
+     */
     public void onJoystickMove(int angle, int power) {
         if (networkClient != null) {
             Message msg = Message.obtain();
@@ -49,4 +64,3 @@ public class JoystickViewModel extends AbstractViewModel {
     public void handleMessage(Message message) {
     }
 }
-

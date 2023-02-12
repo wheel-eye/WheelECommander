@@ -9,10 +9,20 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.wheele_commander.backend.NetworkClient;
 
+/**
+ * stores velocity related information of the connected hardware and handles {@code VELOCITY_UPDATE} messages.
+ * <p>
+ * Velocity related information refers to (total) distance, velocity, and acceleration.
+ *
+ * @author Konrad Pawlikowski
+ * @author Peter Marks
+ * @see com.example.wheele_commander.viewmodel.MessageType
+ */
 public class MovementStatisticsViewModel extends AbstractViewModel {
     private static final String TAG = "MovementStatisticsViewM";
     private final MutableLiveData<Integer> velocity;
@@ -42,6 +52,48 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
         };
     }
 
+    /**
+     * returns the current acceleration of the connected hardware.
+     *
+     * @return Returns the acceleration of the hardware battery where each unit represents a
+     * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per square second
+     * (dm/s^2).
+     */
+    public LiveData<Integer> getAcceleration() {
+        return acceleration;
+    }
+
+    /**
+     * returns the current velocity of the connected hardware.
+     *
+     * @return Returns the velocity of the hardware where each unit represents
+     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per second
+     * (dm/s).
+     */
+    public LiveData<Integer> getVelocity() {
+        return velocity;
+    }
+
+    /**
+     * returns the total distance travelled of the connected hardware during this session.
+     *
+     * @return Returns the distance travelled by the hardware where each unit represents
+     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
+     */
+    public LiveData<Integer> getDistanceTravelled() {
+        return distanceTravelled;
+    }
+
+    /**
+     * Takes a {@code VELOCITY_UPDATE} message and updates the current {@code distanceTravelled},
+     * {@code velocity} and {@code acceleration}.
+     *
+     * @param msg refer to {@link MessageType}.{@code VELOCITY_UPDATE} for clear specifications
+     *            on the message structure.
+     * @throws IllegalArgumentException  Thrown when given a message that isn't a
+     *                                   {@code VELOCITY_UPDATE}.
+     * @throws IndexOutOfBoundsException Thrown when given an unknown message nominal.
+     */
     @Override
     public void handleMessage(Message msg) {
         if (msg.what == MessageType.VELOCITY_UPDATE.ordinal()) {
@@ -49,12 +101,12 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
             int newVelocity = msg.arg1; // may need to scale depending on units used by hardware
             int elapsedTime = (int) (currentReadingMillis - lastReadingMillis);
 
-            distanceTravelled.postValue(
-                    (newVelocity + velocity.getValue()) * elapsedTime / 2000
-            ); // velocity is never null
+            distanceTravelled.postValue(distanceTravelled.getValue() +
+                    (newVelocity + velocity.getValue()) * elapsedTime / 2 / 1000
+            ); // distanceTravelled and velocity are never null
             acceleration.postValue(
                     (newVelocity - velocity.getValue()) / elapsedTime / 1000
-            );
+            ); // 'can' result in division by 0 ArithmeticError
             velocity.postValue(newVelocity);
             lastReadingMillis = currentReadingMillis;
         } else {
@@ -67,13 +119,5 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
                 throw new IndexOutOfBoundsException("Message does not exist");
             }
         }
-    }
-
-    public MutableLiveData<Integer> getVelocity() {
-        return velocity;
-    }
-
-    public MutableLiveData<Integer> getDistanceTravelled() {
-        return distanceTravelled;
     }
 }

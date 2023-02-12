@@ -17,6 +17,12 @@ import com.example.wheele_commander.R;
 import com.example.wheele_commander.backend.NetworkClient;
 import com.example.wheele_commander.model.WarningType;
 
+/**
+ * handles warnings.
+ *
+ * @author Konrad Pawlikowski
+ * @author Peter Marks
+ */
 public class WarningViewModel extends AbstractViewModel {
     private static final String TAG = "WarningViewModel";
     private static final String CHANNEL_ID = "WarningChannel";
