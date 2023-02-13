@@ -39,7 +39,7 @@ public class BatteryViewModel extends AbstractViewModel {
 
     public BatteryViewModel(@NonNull Application application) {
         super(application);
-        batteryCharge = new MutableLiveData<>(100);
+        batteryCharge = new MutableLiveData<>(40);
         estimatedMileage = new MutableLiveData<>(MAXIMUM_MILEAGE);
         serviceConnection = new ServiceConnection() {
             @Override

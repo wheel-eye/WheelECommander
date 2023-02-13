@@ -25,14 +25,14 @@ import com.example.wheele_commander.backend.NetworkClient;
  */
 public class MovementStatisticsViewModel extends AbstractViewModel {
     private static final String TAG = "MovementStatisticsViewM";
-    private final MutableLiveData<Integer> velocity;
+    private final MutableLiveData<Float> velocity;
     private final MutableLiveData<Integer> acceleration;
     private final MutableLiveData<Float> distanceTravelled;
     private Long lastReadingMillis;
 
     public MovementStatisticsViewModel(@NonNull Application application) {
         super(application);
-        velocity = new MutableLiveData<>(0);
+        velocity = new MutableLiveData<>(0f);
         acceleration = new MutableLiveData<>(0);
         distanceTravelled = new MutableLiveData<>(0f);
         lastReadingMillis = SystemClock.uptimeMillis();
@@ -78,7 +78,7 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
      * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per second
      * (dm/s).
      */
-    public LiveData<Integer> getVelocity() {
+    public LiveData<Float> getVelocity() {
         return velocity;
     }
 
@@ -110,7 +110,7 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
                     MessageType.values()[msg.what], msg.what));
         }
 
-        int newVelocity = msg.arg1;
+        float newVelocity = msg.arg1 / 10f;
         long elapsedTime = SystemClock.uptimeMillis() - lastReadingMillis;
 
         // elapsedTime is converted from milliseconds to hours

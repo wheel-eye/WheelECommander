@@ -21,8 +21,9 @@ import java.net.Socket;
 public final class NetworkClient extends Service implements INetworkClient {
     private static final String TAG = "NetworkClient";
 
-    //    private static final String HARDWARE_IP = "172.20.118.23";
-    private static final String HARDWARE_IP = "100.90.35.131";
+    private static final String HARDWARE_IP = "172.20.118.23";
+
+    // private static final String HARDWARE_IP = "100.90.35.131";
     private static final int HARDWARE_PORT_NUMBER = 5000;
     private final IBinder networkClientBinder = new NetworkClientBinder();
     private HandlerThread senderHandlerThread;
@@ -68,7 +69,8 @@ public final class NetworkClient extends Service implements INetworkClient {
                 receiverThread = new ReceiverThread(receiverHandler, socket);
                 receiverThread.start();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
+                System.out.println("Cannot connect to socket!");
             }
         });
         initializationThread.start();
