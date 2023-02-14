@@ -1,12 +1,11 @@
 package com.example.wheele_commander.backend;
 
+import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
-
-import android.os.Handler;
-import android.util.Log;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -38,7 +37,7 @@ public class SenderHandler extends Handler {
             outputStream.write(byteBuffer.array());
             outputStream.flush();
         } catch (IOException e) {
-            Log.e(TAG, "Error writing to output stream: " + e.getMessage());
+            Log.d(TAG, "Error writing to output stream: " + e.getMessage());
         }
     }
 }

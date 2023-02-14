@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.net.Socket;
 
 public class ReceiverThread extends Thread {
+    private static final String TAG = "ReceiverThread";
     private final InputStream inputStream;
     private final Handler receiverHandler;
     private boolean running;
@@ -35,6 +36,7 @@ public class ReceiverThread extends Thread {
                 String payload = readInputStream();
                 receiverHandler.handleMessage(payloadToMessage(payload));
             } catch (IOException e) {
+                Log.d(TAG, "run: Connection has been terminated");
                 stopThread();
             }
         }
