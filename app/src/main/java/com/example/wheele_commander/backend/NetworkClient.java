@@ -65,17 +65,15 @@ public final class NetworkClient extends Service implements INetworkClient {
     public void onDestroy() {
         super.onDestroy();
         // TODO: Close socket
-//        try {
-//            socket.close();
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+		closeSocket();
         senderHandlerThread.quitSafely();
         receiverThread.stopThread();
     }
 
     public void sendMessage(Message msg) {
-        if (senderHandler != null)
+        if (socket != null && !socket.isConnected())
+			new Thread(this::connectSocket).start();		
+		else
             senderHandler.sendMessage(msg);
     }
 
@@ -83,30 +81,44 @@ public final class NetworkClient extends Service implements INetworkClient {
     public void establishConnection() {
         // essential as Android doesn't allow socket set-up in main thread -> NetworkOnMainThreadException
         Thread connectionThread = new Thread(() -> {
-            boolean connected = false;
-            while (!connected) {
-                try {
-                    socket = new Socket();
-                    socket.connect(new InetSocketAddress(HARDWARE_IP, HARDWARE_PORT_NUMBER), 2000);
-                    socket.setKeepAlive(true);
-                    connected = true;
-                    Log.d(TAG, "establishConnection: Connected to " + HARDWARE_IP + ":" + HARDWARE_PORT_NUMBER);
-
-                    senderHandlerThread = new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
-                    senderHandlerThread.start();
-                    senderHandler = new SenderHandler(senderHandlerThread.getLooper(), socket);
-
-                    receiverHandler = new ReceiverHandler(Looper.getMainLooper());
-                    receiverThread = new ReceiverThread(receiverHandler, socket);
-                    receiverThread.start();
-                } catch (IOException e) {
-                    Log.d(TAG, "establishConnection: Connection failed reconnecting in 2 sec...");
-                    SystemClock.sleep(2000);
-                }
-            }
+			connectSocket();
+			
+			senderHandlerThread = new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
+			senderHandlerThread.start();
+			senderHandler = new SenderHandler(senderHandlerThread.getLooper(), socket);
+			
+			receiverHandler = new ReceiverHandler(Looper.getMainLooper());
+            receiverThread = new ReceiverThread(receiverHandler, socket);
+            receiverThread.start();
         });
         connectionThread.start();
     }
+	
+	private void connectSocket() {
+		boolean connected = false;
+		while (!connected) {
+        	try {
+            	socket = new Socket();
+				socket.connect(new InetSocketAddress(HARDWARE_IP, HARDWARE_PORT_NUMBER), 2000);
+                socket.setKeepAlive(true);
+                connected = true;
+                Log.d(TAG, "establishConnection: Connected to " + HARDWARE_IP + ":" + HARDWARE_PORT_NUMBER);
+			} catch (IOException e) {
+            	Log.d(TAG, "establishConnection: Connection failed, reconnecting in 2 sec...");
+				SystemClock.sleep(2000);
+			}
+		}
+	}
+	
+	private void closeSocket() {
+		if (socket.isConnected()) {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
     private class ReceiverHandler extends Handler {
         public ReceiverHandler(Looper looper) {
