@@ -21,13 +21,13 @@ import com.example.wheele_commander.deserializer.Warning;
 import com.example.wheele_commander.viewmodel.MessageType;
 
 import java.io.IOException;
-import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public final class NetworkClient extends Service implements INetworkClient {
     private static final String TAG = "NetworkClient";
-    //    private static final String HARDWARE_IP = "172.20.118.23";
-    private static final String HARDWARE_IP = "100.90.35.131";
+    private static final String HARDWARE_IP = "172.20.118.23";
+    //    private static final String HARDWARE_IP = "100.90.35.131";
     private static final int HARDWARE_PORT_NUMBER = 5000;
     private final IBinder networkClientBinder = new NetworkClientBinder();
     private HandlerThread senderHandlerThread;
@@ -65,12 +65,18 @@ public final class NetworkClient extends Service implements INetworkClient {
     public void onDestroy() {
         super.onDestroy();
         // TODO: Close socket
+//        try {
+//            socket.close();
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
         senderHandlerThread.quitSafely();
         receiverThread.stopThread();
     }
 
     public void sendMessage(Message msg) {
-        senderHandler.sendMessage(msg);
+        if (senderHandler != null)
+            senderHandler.sendMessage(msg);
     }
 
     @Override
@@ -80,10 +86,11 @@ public final class NetworkClient extends Service implements INetworkClient {
             boolean connected = false;
             while (!connected) {
                 try {
-                    socket = new Socket(HARDWARE_IP, HARDWARE_PORT_NUMBER);
+                    socket = new Socket();
+                    socket.connect(new InetSocketAddress(HARDWARE_IP, HARDWARE_PORT_NUMBER), 2000);
                     socket.setKeepAlive(true);
                     connected = true;
-                    Log.d(TAG, "connect: Connected to " + HARDWARE_IP + ":" + HARDWARE_PORT_NUMBER);
+                    Log.d(TAG, "establishConnection: Connected to " + HARDWARE_IP + ":" + HARDWARE_PORT_NUMBER);
 
                     senderHandlerThread = new HandlerThread("SenderHandlerThread", Process.THREAD_PRIORITY_BACKGROUND);
                     senderHandlerThread.start();
@@ -92,11 +99,8 @@ public final class NetworkClient extends Service implements INetworkClient {
                     receiverHandler = new ReceiverHandler(Looper.getMainLooper());
                     receiverThread = new ReceiverThread(receiverHandler, socket);
                     receiverThread.start();
-                } catch (ConnectException e) {
-                    Log.d(TAG, "establishConnection: Connection failed reconnecting in 2 sec...");
-                    SystemClock.sleep(2000);
                 } catch (IOException e) {
-                    Log.d(TAG, "connect: Connection failed reconnecting in 2 sec...");
+                    Log.d(TAG, "establishConnection: Connection failed reconnecting in 2 sec...");
                     SystemClock.sleep(2000);
                 }
             }

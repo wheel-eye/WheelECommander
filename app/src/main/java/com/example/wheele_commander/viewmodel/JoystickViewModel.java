@@ -51,6 +51,7 @@ public class JoystickViewModel extends AbstractViewModel {
             Message msg = Message.obtain();
             msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
 
+            angle -= 90;
             if (angle > 180)
                 angle -= 360;
 
