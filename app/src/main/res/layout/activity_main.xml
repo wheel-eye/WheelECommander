@@ -121,6 +121,7 @@
         android:layout_width="323dp"
         android:layout_height="310dp"
         android:alpha="0.5"
+        android:visibility="invisible"
         app:JV_borderColor="#707070"
         app:JV_borderWidth="8dp"
         app:JV_buttonColor="#CCCCCC"

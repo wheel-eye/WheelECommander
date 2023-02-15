@@ -33,7 +33,7 @@ public class BatteryViewModel extends AbstractViewModel {
      * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>
      * so that a view may display results with 1 decimal point of precision.
      */
-    private static final int MAXIMUM_MILEAGE = 12000; // represents 12km
+    private static final int MAXIMUM_MILEAGE = 12; // represents 12km
     private final MutableLiveData<Integer> batteryCharge;
     private final MutableLiveData<Integer> estimatedMileage;
 
@@ -100,8 +100,8 @@ public class BatteryViewModel extends AbstractViewModel {
         if (msg.what == BATTERY_UPDATE.ordinal()) {
             int newBatteryCharge = msg.arg1;
             batteryCharge.postValue(newBatteryCharge);
-            int newEstimatedMileage = newBatteryCharge == 0 ? 0 : MAXIMUM_MILEAGE / newBatteryCharge * 100;
-            estimatedMileage.postValue(newEstimatedMileage);
+            int newEstimatedMileage = newBatteryCharge == 0 ? 0 : MAXIMUM_MILEAGE / newBatteryCharge;
+            estimatedMileage.postValue(0);
         } else {
             String errorMessage = String.format(
                     Locale.UK,

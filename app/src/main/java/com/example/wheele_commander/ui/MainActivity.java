@@ -3,9 +3,12 @@ package com.example.wheele_commander.ui;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
@@ -25,7 +28,6 @@ import io.github.controlwear.virtual.joystick.android.JoystickView;
 @SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
     private ViewModelProvider viewModelProvider;
     private JoystickViewModel joystickViewModel;
     private BatteryViewModel batteryViewModel;
@@ -38,11 +40,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // instantiate views
+        ConstraintLayout constraintLayout = findViewById(R.id.constraintLayout);
         JoystickView joystickView = findViewById(R.id.joystickView);
         BatteryView batteryView = findViewById(R.id.batteryView);
         TextView mileageTextView = findViewById(R.id.mileageTextView);
         SpeedometerView speedometerView = findViewById(R.id.speedometerView);
         TextView traveledTextView = findViewById(R.id.traveledTextView);
+
+        constraintLayout.setOnTouchListener((view, motionEvent) -> {
+            int action = motionEvent.getAction();
+            if (action == MotionEvent.ACTION_DOWN) {
+                joystickView.setVisibility(View.VISIBLE);
+                joystickView.setX(motionEvent.getX() - joystickView.getWidth() / 2f);
+                joystickView.setY(motionEvent.getY() - joystickView.getHeight() / 2f);
+            } else if (action == MotionEvent.ACTION_UP)
+                joystickView.setVisibility(View.INVISIBLE);
+
+            joystickView.onTouchEvent(motionEvent);
+            return false;
+        });
 
         // instantiate view models
         viewModelProvider = new ViewModelProvider(this);
