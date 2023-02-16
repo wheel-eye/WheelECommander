@@ -9,10 +9,10 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.model.MessageType;
+import com.example.wheele_commander.model.Wheelchair;
 
 /**
  * stores velocity related information of the connected hardware and handles {@code VELOCITY_UPDATE} messages.
@@ -21,20 +21,14 @@ import com.example.wheele_commander.backend.NetworkClient;
  *
  * @author Konrad Pawlikowski
  * @author Peter Marks
- * @see com.example.wheele_commander.viewmodel.MessageType
+ * @see MessageType#VELOCITY_UPDATE
  */
 public class MovementStatisticsViewModel extends AbstractViewModel {
-    private static final String TAG = "MovementStatisticsViewM";
-    private final MutableLiveData<Float> velocity;
-    private final MutableLiveData<Integer> acceleration;
-    private final MutableLiveData<Float> distanceTravelled;
-    private Long lastReadingMillis;
+    private static final String TAG = "MovementStatisticsViewModel";
+    private long lastReadingMillis;
 
-    public MovementStatisticsViewModel(@NonNull Application application) {
-        super(application);
-        velocity = new MutableLiveData<>(0f);
-        acceleration = new MutableLiveData<>(0);
-        distanceTravelled = new MutableLiveData<>(0f);
+    public MovementStatisticsViewModel(@NonNull Application application, @NonNull Wheelchair wheelchair) {
+        super(application, wheelchair);
         lastReadingMillis = SystemClock.uptimeMillis();
         serviceConnection = new ServiceConnection() {
             @Override
@@ -61,42 +55,10 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
     }
 
     /**
-     * returns the current acceleration of the connected hardware.
-     *
-     * @return Returns the acceleration of the hardware battery where each unit represents a
-     * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per square second
-     * (dm/s^2).
-     */
-    public LiveData<Integer> getAcceleration() {
-        return acceleration;
-    }
-
-    /**
-     * returns the current velocity of the connected hardware.
-     *
-     * @return Returns the velocity of the hardware where each unit represents
-     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per second
-     * (dm/s).
-     */
-    public LiveData<Float> getVelocity() {
-        return velocity;
-    }
-
-    /**
-     * returns the total distance travelled of the connected hardware during this session.
-     *
-     * @return Returns the distance travelled by the hardware where each unit represents
-     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
-     */
-    public LiveData<Float> getDistanceTravelled() {
-        return distanceTravelled;
-    }
-
-    /**
      * Takes a {@code VELOCITY_UPDATE} message and updates the current {@code distanceTravelled},
      * {@code velocity} and {@code acceleration}.
      *
-     * @param msg refer to {@link MessageType}.{@code VELOCITY_UPDATE} for clear specifications
+     * @param msg refer to {@link MessageType#VELOCITY_UPDATE} for clear specifications
      *            on the message structure.
      * @throws IllegalArgumentException  Thrown when given a message that isn't a
      *                                   {@code VELOCITY_UPDATE}.
@@ -104,18 +66,19 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
      */
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what != MessageType.VELOCITY_UPDATE.ordinal()) {
+        if (msg.what != MessageType.VELOCITY_UPDATE.nominal()) {
             throw new IllegalArgumentException(String.format("Expected msg.what = %s (%d), got %s (%d)",
                     MessageType.VELOCITY_UPDATE.name(), MessageType.VELOCITY_UPDATE.ordinal(),
                     MessageType.values()[msg.what], msg.what));
         }
 
         float newVelocity = msg.arg1 / 10f;
-        long elapsedTime = SystemClock.uptimeMillis() - lastReadingMillis;
+        int elapsedTime = (int) (SystemClock.uptimeMillis() - lastReadingMillis);
 
         // elapsedTime is converted from milliseconds to hours
-        distanceTravelled.postValue(distanceTravelled.getValue() + (elapsedTime * (velocity.getValue() + newVelocity)) / 7200000f);
-        velocity.postValue(newVelocity);
+        wheelchair.setDistanceTravelled(wheelchair.getDistanceTravelled().getValue() +
+                (elapsedTime * (wheelchair.getVelocity().getValue() + newVelocity)) / 7200000f);
+        wheelchair.setVelocity(newVelocity);
         lastReadingMillis = SystemClock.uptimeMillis();
     }
 }

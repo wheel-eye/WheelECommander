@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import com.example.wheele_commander.R;
 import com.example.wheele_commander.backend.NetworkClient;
 import com.example.wheele_commander.model.WarningType;
+import com.example.wheele_commander.model.Wheelchair;
 
 /**
  * handles warnings.
@@ -28,8 +29,8 @@ public class WarningViewModel extends AbstractViewModel {
     private static final String CHANNEL_ID = "WarningChannel";
     private final NotificationManager notificationManager;
 
-    public WarningViewModel(@NonNull Application application) {
-        super(application);
+    public WarningViewModel(@NonNull Application application, @NonNull Wheelchair wheelchair) {
+        super(application, wheelchair);
         notificationManager = ContextCompat.getSystemService(context, NotificationManager.class);
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Warning", NotificationManager.IMPORTANCE_HIGH);
 
@@ -66,10 +67,7 @@ public class WarningViewModel extends AbstractViewModel {
                 .setAutoCancel(false)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
-        WarningType warningType = WarningType.getWarningTypeFromCode(msg.arg1);
-
-        if (warningType == null)
-            return;
+        WarningType warningType = WarningType.getByNominal(msg.what);
 
         switch (warningType) {
             case EMERGENCY_STOP:

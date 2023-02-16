@@ -10,6 +10,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.model.MessageType;
+import com.example.wheele_commander.model.Wheelchair;
 
 /**
  * relays joystick user input to {@link NetworkClient} such that it may be sent to the connected hardware.
@@ -18,13 +20,13 @@ import com.example.wheele_commander.backend.NetworkClient;
  *
  * @author Konrad Pawlikowski
  * @author Peter Marks
- * @see com.example.wheele_commander.viewmodel.MessageType
+ * @see MessageType#JOYSTICK_MOVEMENT
  */
 public class JoystickViewModel extends AbstractViewModel {
     private static final String TAG = "JoystickViewModel";
 
-    public JoystickViewModel(@NonNull Application application) {
-        super(application);
+    public JoystickViewModel(@NonNull Application application, @NonNull Wheelchair wheelchair) {
+        super(application,wheelchair);
         serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -49,7 +51,7 @@ public class JoystickViewModel extends AbstractViewModel {
     public void onJoystickMove(int angle, int power) {
         if (networkClient != null) {
             Message msg = Message.obtain();
-            msg.what = MessageType.JOYSTICK_MOVEMENT.ordinal();
+            msg.what = MessageType.JOYSTICK_MOVEMENT.nominal();
 
             angle -= 90;
             if (angle > 180)
@@ -63,5 +65,6 @@ public class JoystickViewModel extends AbstractViewModel {
 
     @Override
     public void handleMessage(Message message) {
+        throw new IllegalArgumentException(TAG+": Does not handle messages.");
     }
 }

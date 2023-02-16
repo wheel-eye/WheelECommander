@@ -1,19 +1,23 @@
 package com.example.wheele_commander.viewmodel;
 
-import static com.example.wheele_commander.viewmodel.MessageType.BATTERY_UPDATE;
+import static com.example.wheele_commander.model.MessageType.BATTERY_UPDATE;
 
 import android.app.Application;
+
 import android.content.ComponentName;
 import android.content.ServiceConnection;
+
 import android.os.IBinder;
 import android.os.Message;
+
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import com.example.wheele_commander.backend.NetworkClient;
+
+import com.example.wheele_commander.model.MessageType;
+import com.example.wheele_commander.model.Wheelchair;
 
 import java.util.Locale;
 
@@ -22,25 +26,17 @@ import java.util.Locale;
  *
  * @author Konrad Pawlikowski
  * @author Peter Marks
- * @see com.example.wheele_commander.viewmodel.MessageType
+ * @see MessageType#BATTERY_UPDATE
  */
-public class BatteryViewModel extends AbstractViewModel {
+public final class BatteryViewModel extends AbstractViewModel {
     private static final String TAG = "BatteryViewModel";
-    /**
-     * recalls the mean maximum mileage of the device on smooth terrain with no incline, as measured during testing.
-     * <p>
-     * each unit represents a
-     * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>
-     * so that a view may display results with 1 decimal point of precision.
-     */
-    private static final int MAXIMUM_MILEAGE = 12; // represents 12km
-    private final MutableLiveData<Integer> batteryCharge;
-    private final MutableLiveData<Integer> estimatedMileage;
+    private final Wheelchair wheelchair;
+    private int initialBattery;
 
-    public BatteryViewModel(@NonNull Application application) {
-        super(application);
-        batteryCharge = new MutableLiveData<>(40);
-        estimatedMileage = new MutableLiveData<>(MAXIMUM_MILEAGE);
+    public BatteryViewModel(@NonNull Application application, @NonNull Wheelchair wheelchair) {
+        super(application, wheelchair);
+        this.wheelchair = wheelchair;
+        this.initialBattery = -1;
         serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -66,30 +62,10 @@ public class BatteryViewModel extends AbstractViewModel {
     }
 
     /**
-     * returns the current charge of the connected hardware.
-     *
-     * @return Returns the charge of the hardware battery where each unit represents 0.1%
-     * of battery charge.
-     */
-    public LiveData<Integer> getBatteryCharge() {
-        return batteryCharge;
-    }
-
-    /**
-     * returns the estimated mileage of the connected hardware.
-     *
-     * @return Returns the estimated mileage of the hardware where each unit represents
-     * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
-     */
-    public LiveData<Integer> getEstimatedMileage() {
-        return estimatedMileage;
-    }
-
-    /**
      * Takes a {@code BATTERY_UPDATE} message and updates the current {@code batteryCharge} and
      * {@code estimatedMileage}.
      *
-     * @param msg refer to {@link MessageType}.{@code BATTERY_UPDATE} for clear specifications
+     * @param msg refer to {@link MessageType#BATTERY_UPDATE} for clear specifications
      *            on the message structure.
      * @throws IllegalArgumentException  Thrown when given a message that isn't a
      *                                   {@code BATTERY_UPDATE}.
@@ -97,18 +73,28 @@ public class BatteryViewModel extends AbstractViewModel {
      */
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what == BATTERY_UPDATE.ordinal()) {
+        if (msg.what == BATTERY_UPDATE.nominal()) {
+            initialBattery = Math.max(msg.arg1, initialBattery);
             int newBatteryCharge = msg.arg1;
-            batteryCharge.postValue(newBatteryCharge);
-            int newEstimatedMileage = newBatteryCharge == 0 ? 0 : MAXIMUM_MILEAGE / newBatteryCharge;
-            estimatedMileage.postValue(0);
+            wheelchair.setBatteryCharge(newBatteryCharge);
+
+            wheelchair.setEstimatedMileage(
+                    newBatteryCharge == 0 ?
+                            0 :
+                            (wheelchair.getDistanceTravelled().getValue() < 0.1f ?
+                                    Wheelchair.MAXIMUM_MILEAGE :
+                                    wheelchair.getDistanceTravelled().getValue() *
+                                            ((float) newBatteryCharge) /
+                                            ((float) (initialBattery-newBatteryCharge) )
+                            )
+            );
         } else {
             String errorMessage = String.format(
                     Locale.UK,
                     "Expected msg.what = %s (%d), got %s (%d)",
                     BATTERY_UPDATE.name(),
-                    BATTERY_UPDATE.ordinal(),
-                    MessageType.values()[msg.what].name(),
+                    BATTERY_UPDATE.nominal(),
+                    MessageType.getByNominal(msg.what).name(),
                     msg.what);
             throw new IllegalArgumentException(errorMessage);
         }

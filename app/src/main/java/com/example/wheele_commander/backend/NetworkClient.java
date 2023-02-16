@@ -18,7 +18,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.wheele_commander.deserializer.Data;
 import com.example.wheele_commander.deserializer.Warning;
-import com.example.wheele_commander.viewmodel.MessageType;
+import com.example.wheele_commander.model.MessageType;
+import com.example.wheele_commander.model.WarningType;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -130,20 +131,19 @@ public final class NetworkClient extends Service implements INetworkClient {
 
                 if (data.getSpeed() != null) {
                     Message velocityMessage = new Message();
-                    velocityMessage.what = MessageType.VELOCITY_UPDATE.ordinal();
+                    velocityMessage.what = MessageType.VELOCITY_UPDATE.nominal();
                     velocityMessage.arg1 = data.getSpeed();
                     movementMessageData.postValue(velocityMessage);
                 }
                 if (data.getBattery() != null) {
                     Message batteryMessage = new Message();
-                    batteryMessage.what = MessageType.BATTERY_UPDATE.ordinal();
+                    batteryMessage.what = MessageType.BATTERY_UPDATE.nominal();
                     batteryMessage.arg1 = data.getBattery();
                     batteryMessageData.postValue(batteryMessage);
                 }
             } else if (msg.what == 1) { // WARNING
                 Message warningMessage = new Message();
-                warningMessage.what = MessageType.WARNING_MESSAGE.ordinal();
-                warningMessage.arg1 = ((Warning) msg.obj).getCode();
+                warningMessage.what = ((Warning) msg.obj).getCode();
                 warningMessageData.postValue(warningMessage);
             }
         }

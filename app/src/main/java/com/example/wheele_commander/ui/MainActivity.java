@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
 import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.model.Wheelchair;
 import com.example.wheele_commander.viewmodel.AbstractViewModel;
 import com.example.wheele_commander.viewmodel.BatteryViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private BatteryViewModel batteryViewModel;
     private MovementStatisticsViewModel movementViewModel;
     private WarningViewModel warningViewModel;
+    private Wheelchair wheelchair;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
             joystickView.onTouchEvent(motionEvent);
             return false;
         });
+        // instantiate wheelchair model
+        this.wheelchair = new Wheelchair();
 
         // instantiate view models
         viewModelProvider = new ViewModelProvider(this);
@@ -71,12 +75,12 @@ public class MainActivity extends AppCompatActivity {
                 joystickViewModel.onJoystickMove(angle, strength), 17);
 
         // observe view model variables and change views accordingly
-        batteryViewModel.getBatteryCharge().observe(this, batteryLevel ->
+        wheelchair.getBatteryCharge().observe(this, batteryLevel ->
                 batteryView.setBatteryLevel(batteryLevel / 100f));
-        batteryViewModel.getEstimatedMileage().observe(this, estimatedMileage ->
-                mileageTextView.setText(String.format(Locale.UK, "%d km", estimatedMileage)));
-        movementViewModel.getVelocity().observe(this, speedometerView::setVelocity);
-        movementViewModel.getDistanceTravelled().observe(this, distanceTravelled ->
+        wheelchair.getEstimatedMileage().observe(this, estimatedMileage ->
+                mileageTextView.setText(String.format(Locale.UK, "%f km", estimatedMileage)));
+        wheelchair.getVelocity().observe(this, speedometerView::setVelocity);
+        wheelchair.getDistanceTravelled().observe(this, distanceTravelled ->
                 traveledTextView.setText(String.format(Locale.UK, "%.2f km", distanceTravelled)));
 
         // bind view models to the service
