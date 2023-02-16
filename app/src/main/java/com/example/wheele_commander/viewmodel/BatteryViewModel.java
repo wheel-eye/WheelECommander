@@ -78,16 +78,35 @@ public final class BatteryViewModel extends AbstractViewModel {
             int newBatteryCharge = msg.arg1;
             wheelchair.setBatteryCharge(newBatteryCharge);
 
-            wheelchair.setEstimatedMileage(
-                    newBatteryCharge == 0 ?
-                            0 :
-                            (wheelchair.getDistanceTravelled().getValue() < 0.1f ?
-                                    Wheelchair.MAXIMUM_MILEAGE :
-                                    wheelchair.getDistanceTravelled().getValue() *
-                                            ((float) newBatteryCharge) /
-                                            ((float) (initialBattery-newBatteryCharge) )
-                            )
-            );
+            if (newBatteryCharge == 0){
+                wheelchair.setEstimatedMileage(0);
+            } else if (wheelchair.getDistanceTravelled().getValue() < 0.1f){
+                wheelchair.setEstimatedMileage(Wheelchair.MAXIMUM_MILEAGE);
+            } else {
+                // K.P - EXPERIMENTAL
+                float globalOccurance = 0;
+                float localOccurance = 0;
+                for (int i = 0; i < Wheelchair.wasteCoefficients.length; i++) {
+                    globalOccurance += ((float) wheelchair.globalPowerUseBin[i] /
+                            (float) wheelchair.globalMeasure) *
+                            Wheelchair.wasteCoefficients[i];
+                    if (wheelchair.OneIsActiveBin){
+                        localOccurance += ((float) wheelchair.localPowerUseBin1[i] /
+                                (float) wheelchair.localMeasure1) *
+                                Wheelchair.wasteCoefficients[i];
+                    } else {
+                        localOccurance += ((float) wheelchair.localPowerUseBin2[i] /
+                                (float) wheelchair.localMeasure2) *
+                                Wheelchair.wasteCoefficients[i];
+                    }
+                }
+                wheelchair.setEstimatedMileage(
+                        wheelchair.getDistanceTravelled().getValue() *
+                                ((float) newBatteryCharge) /
+                                ((float) (initialBattery-newBatteryCharge)) *
+                                        localOccurance / globalOccurance
+                );
+            }
         } else {
             String errorMessage = String.format(
                     Locale.UK,

@@ -1,5 +1,8 @@
 package com.example.wheele_commander.model;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -10,6 +13,25 @@ public final class Wheelchair {
     private final MutableLiveData<Float> distanceTravelled;
     private final MutableLiveData<Integer> batteryCharge;
     private final MutableLiveData<Float> estimatedMileage;
+
+    // K.P - this section is EXPERIMENTAL, see document (demo report 1, misc section) for full explanation of implementation
+    // requires further analysis
+    // Would like to introduce Guava for immutable array
+    // these waste coefficients are 100% wrong, need experimentation to determine
+    public static final float[] wasteCoefficients = new float[]{1,0.99f,0.98f,0.965f,0.95f};
+    public static final float[] wasteCutoffs = new float[]{10,20,40,60,Float.POSITIVE_INFINITY};
+
+    public final long[] globalPowerUseBin = new long[]{0,0,0,0,0}; // taking no chances with a long
+    public long globalMeasure = 0;
+    public int[] localPowerUseBin1 = new int[]{0,0,0,0,0};
+    public int localMeasure1 = 0;
+    public int[] localPowerUseBin2 = new int[]{0,0,0,0,0};
+    public int localMeasure2 = 0;
+    public boolean OneIsActiveBin = true;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private static final int delay = 60000; // 1000 milliseconds == 1 second
+
+
 
     /**
      * recalls the mean maximum mileage of the device on smooth terrain with no incline, as measured during testing.
@@ -26,6 +48,28 @@ public final class Wheelchair {
         this.distanceTravelled = new MutableLiveData<>(0f);
         this.batteryCharge = new MutableLiveData<>(1000);
         this.estimatedMileage = new MutableLiveData<>(MAXIMUM_MILEAGE);
+
+        // K.P - EXPERIMENTAL
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                OneIsActiveBin = false;
+                localPowerUseBin1 = new int[]{0,0,0,0,0};
+                localMeasure1 = 0;
+                handler.removeCallbacks(this);
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                OneIsActiveBin = true;
+                localPowerUseBin2 = new int[]{0,0,0,0,0};
+                localMeasure2 = 0;
+                handler.removeCallbacks(this);
+                handler.postDelayed(this, delay);
+            }
+        }, delay+3000);
 
         // Y.S. - subject to change
         setParentalLockOn(false);
@@ -48,6 +92,24 @@ public final class Wheelchair {
      */
     public void setVelocity(float velocity){
         this.velocity.setValue(velocity);
+        for (int i = 0; i < wasteCutoffs.length; i++) {
+            if (velocity < wasteCutoffs[i]){
+                globalPowerUseBin[i]+=1;
+                localPowerUseBin1[i]+=1;
+                localPowerUseBin2[i]+=1;
+                break;
+            }
+        }
+        globalMeasure+=1;
+        localMeasure1+=1;
+        localMeasure2+=1;
+    }
+
+    public void clearLocalBin1(){
+        localPowerUseBin1 = new int[]{0,0,0,0,0};
+    }
+    public void clearLocalBin2(){
+        localPowerUseBin2 = new int[]{0,0,0,0,0};
     }
 
     /**
