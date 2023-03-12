@@ -237,7 +237,7 @@ public class SpeedometerView extends View {
         paintSpeed.setAntiAlias(true);
         paintSpeed.setStyle(Paint.Style.FILL);
         paintSpeed.setColor(textColor);
-        paintSpeed.setTextSize(260f);
+        paintSpeed.setTextSize(210f);
     }
 
     private final Paint paintMetric = new Paint();

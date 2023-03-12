@@ -9,11 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.Observer;
 
-import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.CommunicationService;
 
 public abstract class AbstractViewModel extends AndroidViewModel {
     protected Context context;
-    protected NetworkClient networkClient;
+    protected CommunicationService communicationService;
     protected ServiceConnection serviceConnection;
     protected Observer<Message> messageObserver;
 

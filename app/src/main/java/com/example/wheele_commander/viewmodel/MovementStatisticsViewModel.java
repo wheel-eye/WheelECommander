@@ -12,7 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.CommunicationService;
+
+import java.util.Locale;
 
 /**
  * stores velocity related information of the connected hardware and handles {@code VELOCITY_UPDATE} messages.
@@ -40,11 +42,11 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
             @Override
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 Log.d(TAG, "onServiceConnected: Connected to service");
-                NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-                networkClient = binder.getService();
+                CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
+                communicationService = binder.getService();
 
                 // TODO: evil, but better than passing reference to NetworkClient via setter
-                networkClient.getMovementMessage().observeForever(messageObserver);
+                communicationService.getMovementMessageData().observeForever(messageObserver);
             }
 
             @Override
@@ -57,7 +59,7 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        networkClient.getMovementMessage().removeObserver(messageObserver);
+        communicationService.getMovementMessageData().removeObserver(messageObserver);
     }
 
     /**
@@ -104,12 +106,14 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
      */
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what != MessageType.VELOCITY_UPDATE.ordinal()) {
-            throw new IllegalArgumentException(String.format("Expected msg.what = %s (%d), got %s (%d)",
-                    MessageType.VELOCITY_UPDATE.name(), MessageType.VELOCITY_UPDATE.ordinal(),
-                    MessageType.values()[msg.what], msg.what));
+        if (msg.what != MessageType.VELOCITY_UPDATE) {
+            String errorMessage = String.format(
+                    Locale.UK,
+                    "Expected code %d, got %d%n", MessageType.VELOCITY_UPDATE, msg.what);
+            throw new IllegalArgumentException(errorMessage);
         }
 
+        // hardware sends scaled-up velocity value by factor of 10 so floats don't have to be exchanged
         float newVelocity = msg.arg1 / 10f;
         long elapsedTime = SystemClock.uptimeMillis() - lastReadingMillis;
 

@@ -19,9 +19,9 @@ public class JsonDeserializer {
         return instance;
     }
 
-    public <T> T deserialize(String json, Class<T> type) {
+    public <T> T deserialize(byte[] jsonBytes, Class<T> type) {
         try {
-            return objectMapper.readValue(json, type);
+            return objectMapper.readValue(jsonBytes, type);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_drawable"
     android:clickable="true"
-    android:padding="30dp">
+    android:padding="@dimen/_15sdp">
 
     <com.example.wheele_commander.ui.SpeedometerView
         android:id="@+id/speedometerView"
-        android:layout_width="291dp"
-        android:layout_height="289dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="@dimen/_220sdp"
+        android:layout_height="@dimen/_220sdp"
+        android:layout_marginTop="@dimen/_15sdp"
         app:borderColor="#21304F"
-        app:borderSize="20dp"
+        app:borderSize="@dimen/_13sdp"
         app:fillColor="#8721DF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,16 +25,16 @@
 
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="365dp"
-        android:layout_height="71dp"
-        android:layout_marginTop="20dp"
+        android:layout_width="@dimen/_230sdp"
+        android:layout_height="@dimen/_45sdp"
+        android:layout_marginTop="@dimen/_1sdp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/speedometerView">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="@dimen/_1sdp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
@@ -46,25 +45,25 @@
                 android:layout_height="wrap_content"
                 android:text="TRAVELED"
                 android:textColor="#FF414D66"
-                android:textSize="20sp" />
+                android:textSize="@dimen/_13sdp" />
 
             <TextView
                 android:id="@+id/traveledTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
+                android:paddingTop="@dimen/_8sdp"
                 android:text="0 km"
                 android:textColor="@color/white"
-                android:textSize="20sp" />
+                android:textSize="@dimen/_15sdp" />
         </LinearLayout>
 
         <View
-            android:layout_width="1dp"
+            android:layout_width="@dimen/_1sdp"
             android:layout_height="match_parent"
             android:background="#414D66" />
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="@dimen/_1sdp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
@@ -75,25 +74,25 @@
                 android:layout_height="wrap_content"
                 android:text="EST. MILEAGE"
                 android:textColor="#FF414D66"
-                android:textSize="20sp" />
+                android:textSize="@dimen/_13sdp" />
 
             <TextView
                 android:id="@+id/mileageTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
+                android:paddingTop="@dimen/_8sdp"
                 android:text="0 km"
                 android:textColor="@color/white"
-                android:textSize="20sp" />
+                android:textSize="@dimen/_15sdp" />
         </LinearLayout>
 
     </LinearLayout>
 
     <com.example.wheele_commander.ui.BatteryView
         android:id="@+id/batteryView"
-        android:layout_width="216dp"
-        android:layout_height="260dp"
-        android:layout_marginTop="52dp"
+        android:layout_width="@dimen/_180sdp"
+        android:layout_height="@dimen/_180sdp"
+        android:layout_marginTop="@dimen/_15sdp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
@@ -102,28 +101,27 @@
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="96dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="@dimen/_80sdp"
+        android:layout_height="@dimen/_20sdp"
+        android:layout_marginTop="@dimen/_4sdp"
         android:gravity="center"
         android:text="BATTERY"
         android:textColor="#FF414D66"
-        android:textSize="20sp"
+        android:textSize="@dimen/_17sdp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/batteryView"
-        app:layout_constraintVertical_bias="0.272" />
+        app:layout_constraintTop_toBottomOf="@+id/batteryView" />
 
     <io.github.controlwear.virtual.joystick.android.JoystickView
         android:id="@+id/joystickView"
-        android:layout_width="323dp"
-        android:layout_height="310dp"
+        android:layout_width="@dimen/_220sdp"
+        android:layout_height="@dimen/_220sdp"
         android:alpha="0.5"
         android:visibility="invisible"
         app:JV_borderColor="#707070"
-        app:JV_borderWidth="8dp"
+        app:JV_borderWidth="@dimen/_6sdp"
         app:JV_buttonColor="#CCCCCC"
         app:JV_buttonSizeRatio="25%"
         app:JV_fixedCenter="false"

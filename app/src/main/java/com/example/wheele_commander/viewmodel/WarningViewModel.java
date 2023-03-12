@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.wheele_commander.R;
-import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.CommunicationService;
 import com.example.wheele_commander.model.WarningType;
 
 /**
@@ -39,11 +39,11 @@ public class WarningViewModel extends AbstractViewModel {
             @Override
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 Log.d(TAG, "onServiceConnected: Connected to service");
-                NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-                networkClient = binder.getService();
+                CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
+                communicationService = binder.getService();
 
                 // TODO: evil, but better than passing reference to NetworkClient via setter
-                networkClient.getWarningMessage().observeForever(messageObserver);
+                communicationService.getWarningMessageData().observeForever(messageObserver);
             }
 
             @Override
@@ -56,7 +56,7 @@ public class WarningViewModel extends AbstractViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        networkClient.getWarningMessage().removeObserver(messageObserver);
+        communicationService.getWarningMessageData().removeObserver(messageObserver);
     }
 
     @Override

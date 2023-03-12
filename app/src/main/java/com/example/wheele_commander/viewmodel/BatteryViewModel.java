@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.CommunicationService;
 
 import java.util.Locale;
 
@@ -45,11 +45,11 @@ public class BatteryViewModel extends AbstractViewModel {
             @Override
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 Log.d(TAG, "onServiceConnected: Connected to service");
-                NetworkClient.NetworkClientBinder binder = (NetworkClient.NetworkClientBinder) iBinder;
-                networkClient = binder.getService();
+                CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
+                communicationService = binder.getService();
 
                 // TODO: evil, but better than passing reference to NetworkClient via setter
-                networkClient.getBatteryMessage().observeForever(messageObserver);
+                communicationService.getBatteryMessageData().observeForever(messageObserver);
             }
 
             @Override
@@ -62,7 +62,7 @@ public class BatteryViewModel extends AbstractViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        networkClient.getBatteryMessage().removeObserver(messageObserver);
+        communicationService.getBatteryMessageData().removeObserver(messageObserver);
     }
 
     /**
@@ -97,19 +97,15 @@ public class BatteryViewModel extends AbstractViewModel {
      */
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what == BATTERY_UPDATE.ordinal()) {
+        if (msg.what == BATTERY_UPDATE) {
             int newBatteryCharge = msg.arg1;
             batteryCharge.postValue(newBatteryCharge);
             int newEstimatedMileage = newBatteryCharge == 0 ? 0 : MAXIMUM_MILEAGE / newBatteryCharge;
-            estimatedMileage.postValue(0);
+            estimatedMileage.postValue(newEstimatedMileage);
         } else {
             String errorMessage = String.format(
                     Locale.UK,
-                    "Expected msg.what = %s (%d), got %s (%d)",
-                    BATTERY_UPDATE.name(),
-                    BATTERY_UPDATE.ordinal(),
-                    MessageType.values()[msg.what].name(),
-                    msg.what);
+                    "Expected code %d, got %d%n", BATTERY_UPDATE, msg.what);
             throw new IllegalArgumentException(errorMessage);
         }
     }

@@ -1,18 +1,24 @@
 package com.example.wheele_commander.ui;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
-import com.example.wheele_commander.backend.NetworkClient;
+import com.example.wheele_commander.backend.bluetooth.BluetoothService;
 import com.example.wheele_commander.viewmodel.AbstractViewModel;
 import com.example.wheele_commander.viewmodel.BatteryViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
@@ -68,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         warningViewModel = viewModelProvider.get(WarningViewModel.class);
 
         joystickView.setOnMoveListener((angle, strength) ->
-                joystickViewModel.onJoystickMove(angle, strength), 17);
+                joystickViewModel.onJoystickMove(angle, strength));
 
         // observe view model variables and change views accordingly
         batteryViewModel.getBatteryCharge().observe(this, batteryLevel ->
@@ -79,11 +85,41 @@ public class MainActivity extends AppCompatActivity {
         movementViewModel.getDistanceTravelled().observe(this, distanceTravelled ->
                 traveledTextView.setText(String.format(Locale.UK, "%.2f km", distanceTravelled)));
 
+        // TODO: Add check that client has selected Bluetooth and not TCP
+        enableBluetooth();
+    }
+
+    private void enableBluetooth() {
+        BluetoothManager bluetoothManager = getSystemService(BluetoothManager.class);
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+        assert bluetoothAdapter != null; // won't be null because of the android:required=true permission
+
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        int resultCode = result.getResultCode();
+                        if (resultCode == Activity.RESULT_OK) {
+                            Log.d(TAG, "Bluetooth enabled");
+                            startBluetoothService();
+                        } else {
+                            Log.d(TAG, "Bluetooth not enabled");
+                        }
+                    }
+            );
+            someActivityResultLauncher.launch(enableBtIntent);
+        } else {
+            startBluetoothService();
+        }
+    }
+
+    private void startBluetoothService() {
         // bind view models to the service
-        Intent startIntent = new Intent(this, NetworkClient.class);
+        Intent startIntent = new Intent(this, BluetoothService.class);
         startService(startIntent);
         List<AbstractViewModel> viewModels = Arrays.asList(joystickViewModel, batteryViewModel, movementViewModel, warningViewModel);
-        Intent bindIntent = new Intent(this, NetworkClient.class);
+        Intent bindIntent = new Intent(this, BluetoothService.class);
         viewModels.forEach(viewModel -> bindService(bindIntent, viewModel.getServiceConnection(), BIND_AUTO_CREATE));
     }
 }
