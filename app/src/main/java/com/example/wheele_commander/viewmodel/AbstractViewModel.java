@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.ServiceConnection;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -28,7 +29,8 @@ public abstract class AbstractViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        context.unbindService(serviceConnection);
+        // TODO: Causes errors, when application is terminated
+        // context.unbindService(serviceConnection);
     }
 
     public ServiceConnection getServiceConnection() {

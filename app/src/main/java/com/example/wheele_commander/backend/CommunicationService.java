@@ -10,6 +10,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.wheele_commander.backend.interfaces.AbstractConnectionManager;
 import com.example.wheele_commander.backend.interfaces.IConnection;
 import com.example.wheele_commander.backend.interfaces.IConnectionManager;
 import com.example.wheele_commander.backend.listeners.IConnectionReconnectListener;
@@ -24,7 +25,7 @@ public abstract class CommunicationService extends Service {
     protected final IConnectionReconnectListener reconnectListener = this::onReconnect;
 
     protected String TAG = "CommunicationService";
-    protected IConnectionManager connectionManager;
+    protected AbstractConnectionManager connectionManager;
     protected CommunicationThread communicationThread;
     protected MutableLiveData<Message> movementMessageData;
     protected MutableLiveData<Message> batteryMessageData;
@@ -96,8 +97,7 @@ public abstract class CommunicationService extends Service {
     }
 
     public void send(Message message) {
-        // TODO: Check communicationManager.isConnected() == True
-        if (communicationThread != null)
+        if (connectionManager.isConnected())
             communicationThread.send(message);
     }
 

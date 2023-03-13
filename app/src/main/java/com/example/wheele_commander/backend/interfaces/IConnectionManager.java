@@ -10,4 +10,6 @@ public interface IConnectionManager {
     void disconnect();
 
     void setReconnectListener(IConnectionReconnectListener reconnectListener);
+
+    boolean isConnected();
 }

@@ -5,51 +5,27 @@ import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.example.wheele_commander.backend.interfaces.AbstractConnectionManager;
 import com.example.wheele_commander.backend.interfaces.IConnection;
-import com.example.wheele_commander.backend.interfaces.IConnectionManager;
-import com.example.wheele_commander.backend.listeners.IConnectionListener;
-import com.example.wheele_commander.backend.listeners.IConnectionReconnectListener;
 
 import java.io.IOException;
 import java.util.UUID;
 
-public class BluetoothConnectionManager implements IConnectionManager {
-    private static final String TAG = "BluetoothConnectionManager";
+public class BluetoothConnectionManager extends AbstractConnectionManager {
     private static final UUID DEVICE_UUID = UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee");
-    private static final long RECONNECT_DELAY_MS = 2000L;
 
-    private final IConnectionListener connectionListener = this::onConnectionLost;
     private final BluetoothDevice device;
-
-    private IConnectionReconnectListener reconnectListener;
     private BluetoothSocket socket;
-    private IConnection connection;
 
     public BluetoothConnectionManager(BluetoothDevice device) {
+        TAG = "BluetoothConnectionManager";
         this.device = device;
     }
 
-    private void onConnectionLost() {
+    @Override
+    protected void onConnectionLost() {
         Log.d(TAG, "Bluetooth connection lost");
-        // reconnect in new Thread since it is a blocking operation
-        new Thread(BluetoothConnectionManager.this::attemptToReconnect).start();
-    }
-
-    private void attemptToReconnect() {
-        while (true) {
-            createChannel();
-            IConnection newConnection = connectChannel();
-            if (newConnection != null) {
-                reconnectListener.onReconnect(newConnection);
-                connection = newConnection;
-                connection.setConnectionListener(connectionListener);
-                Log.d(TAG, "Reconnection successful");
-                return;
-            }
-
-            Log.d(TAG, "Failed to connect, retrying in 2 sec...");
-            SystemClock.sleep(RECONNECT_DELAY_MS);
-        }
+        super.onConnectionLost();
     }
 
     @Override
@@ -86,10 +62,5 @@ public class BluetoothConnectionManager implements IConnectionManager {
         } catch (IOException e) {
             Log.d(TAG, "Could not close the client socket");
         }
-    }
-
-    @Override
-    public void setReconnectListener(IConnectionReconnectListener reconnectListener) {
-        this.reconnectListener = reconnectListener;
     }
 }
