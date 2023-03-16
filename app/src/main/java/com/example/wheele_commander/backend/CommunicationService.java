@@ -12,7 +12,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.wheele_commander.backend.interfaces.AbstractConnectionManager;
 import com.example.wheele_commander.backend.interfaces.IConnection;
-import com.example.wheele_commander.backend.interfaces.IConnectionManager;
 import com.example.wheele_commander.backend.listeners.IConnectionReconnectListener;
 import com.example.wheele_commander.backend.listeners.IReceiveListener;
 import com.example.wheele_commander.deserializer.Data;
@@ -58,6 +57,7 @@ public abstract class CommunicationService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy: Communication service terminated");
         connectionManager.disconnect();
         communicationThread.stopCommunication();
     }

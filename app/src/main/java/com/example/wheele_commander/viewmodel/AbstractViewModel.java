@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer;
 import com.example.wheele_commander.backend.CommunicationService;
 
 public abstract class AbstractViewModel extends AndroidViewModel {
+    private static final String TAG = "AbstractViewModel";
     protected Context context;
     protected CommunicationService communicationService;
     protected ServiceConnection serviceConnection;
@@ -30,6 +31,7 @@ public abstract class AbstractViewModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
         // TODO: Causes errors, when application is terminated
+        // Log.d(TAG, "onCleared: Clearing ViewModel");
         // context.unbindService(serviceConnection);
     }
 

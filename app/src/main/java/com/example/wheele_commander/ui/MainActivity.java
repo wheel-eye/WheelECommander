@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: here");
         setContentView(R.layout.activity_main);
 
         // instantiate views
@@ -121,5 +122,11 @@ public class MainActivity extends AppCompatActivity {
         List<AbstractViewModel> viewModels = Arrays.asList(joystickViewModel, batteryViewModel, movementViewModel, warningViewModel);
         Intent bindIntent = new Intent(this, BluetoothService.class);
         viewModels.forEach(viewModel -> bindService(bindIntent, viewModel.getServiceConnection(), BIND_AUTO_CREATE));
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy: Destroying activity");
+        super.onDestroy();
     }
 }
