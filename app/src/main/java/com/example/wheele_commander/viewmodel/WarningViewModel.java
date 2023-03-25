@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Message;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,8 @@ import com.example.wheele_commander.R;
 import com.example.wheele_commander.backend.CommunicationService;
 import com.example.wheele_commander.model.WarningType;
 
+import java.util.Arrays;
+
 /**
  * handles warnings.
  *
@@ -26,6 +29,8 @@ import com.example.wheele_commander.model.WarningType;
 public class WarningViewModel extends AbstractViewModel {
     private static final String TAG = "WarningViewModel";
     private static final String CHANNEL_ID = "WarningChannel";
+    private static final long NOTIFICATION_TIMEOUT = 10000L;
+
     private final NotificationManager notificationManager;
 
     public WarningViewModel(@NonNull Application application) {
@@ -61,9 +66,15 @@ public class WarningViewModel extends AbstractViewModel {
 
     @Override
     public void handleMessage(Message msg) {
+        StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+        boolean notificationExists = Arrays.stream(notifications).anyMatch(n -> n.getId() == msg.arg1);
+        if (notificationExists)
+            return;
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setAutoCancel(false)
+                .setAutoCancel(true)
+                .setTimeoutAfter(NOTIFICATION_TIMEOUT)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
         WarningType warningType = WarningType.getWarningTypeFromCode(msg.arg1);
