@@ -32,6 +32,7 @@ public final class BatteryViewModel extends AbstractViewModel {
     private static final String TAG = "BatteryViewModel";
     private final Wheelchair wheelchair;
     private int initialBattery;
+    private static final float MAX_BATTERY_CHARGE = 100.0f;
 
     public BatteryViewModel(@NonNull Application application, @NonNull Wheelchair wheelchair) {
         super(application, wheelchair);
@@ -81,8 +82,8 @@ public final class BatteryViewModel extends AbstractViewModel {
             wheelchair.setEstimatedMileage(
                     newBatteryCharge == 0 ?
                             0 :
-                            (wheelchair.getDistanceTravelled().getValue() < 0.1f ?
-                                    Wheelchair.MAXIMUM_MILEAGE :
+                            (wheelchair.getDistanceTravelled().getValue() < 10.0f ?
+                                    Wheelchair.MAXIMUM_MILEAGE * newBatteryCharge / MAX_BATTERY_CHARGE :
                                     wheelchair.getDistanceTravelled().getValue() *
                                             ((float) newBatteryCharge) /
                                             ((float) (initialBattery-newBatteryCharge) )
