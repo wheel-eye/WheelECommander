@@ -1,10 +1,14 @@
 package com.example.wheele_commander.ui;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -15,6 +19,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.wheele_commander.R;
@@ -43,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate: here");
         setContentView(R.layout.activity_main);
 
         // instantiate views
@@ -91,28 +95,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enableBluetooth() {
-        BluetoothManager bluetoothManager = getSystemService(BluetoothManager.class);
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-        assert bluetoothAdapter != null; // won't be null because of the android:required=true permission
 
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
-                    new ActivityResultContracts.StartActivityForResult(),
-                    result -> {
-                        int resultCode = result.getResultCode();
-                        if (resultCode == Activity.RESULT_OK) {
-                            Log.d(TAG, "Bluetooth enabled");
-                            startBluetoothService();
-                        } else {
-                            Log.d(TAG, "Bluetooth not enabled");
-                        }
-                    }
-            );
-            someActivityResultLauncher.launch(enableBtIntent);
-        } else {
-            startBluetoothService();
+        if (bluetoothAdapter == null) {
+            Log.d(TAG, "Bluetooth is not supported on this device");
+            return;
         }
+
+        if (bluetoothAdapter.isEnabled()) {
+            startBluetoothService();
+            return;
+        }
+
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        ActivityResultLauncher<Intent> enableBtLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    int resultCode = result.getResultCode();
+                    if (resultCode == Activity.RESULT_OK) {
+                        Log.d(TAG, "Bluetooth enabled");
+                        startBluetoothService();
+                    } else if (resultCode == Activity.RESULT_CANCELED)
+                        Log.d(TAG, "Bluetooth not enabled");
+                });
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+        } else
+            enableBtLauncher.launch(enableBtIntent);
     }
 
     private void startBluetoothService() {

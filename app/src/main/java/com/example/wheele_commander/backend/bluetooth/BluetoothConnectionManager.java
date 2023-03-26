@@ -11,17 +11,21 @@ import com.example.wheele_commander.backend.interfaces.IConnection;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.UUID;
 
 public class BluetoothConnectionManager extends AbstractConnectionManager {
-    private static final UUID DEVICE_UUID = UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee");
-    private static final int SERVER_PORT = 1;
+    private static final int SERVER_PORT = 5;
 
     private final BluetoothDevice device;
+    private Method createRfcommSocket;
     private BluetoothSocket socket;
 
     public BluetoothConnectionManager(BluetoothDevice device) {
         TAG = "BluetoothConnectionManager";
+        try {
+            createRfcommSocket = device.getClass().getMethod("createRfcommSocket", int.class);
+        } catch (NoSuchMethodException e) {
+            Log.d(TAG, "createRfcommSocket method not found");
+        }
         this.device = device;
     }
 
@@ -35,13 +39,9 @@ public class BluetoothConnectionManager extends AbstractConnectionManager {
     public void createChannel() {
         BluetoothSocket tmpSocket = null;
         try {
-            tmpSocket = device.createRfcommSocketToServiceRecord(DEVICE_UUID);
-            Method createRfcommSocket = device.getClass().getMethod("createRfcommSocket", int.class);
             tmpSocket = (BluetoothSocket) createRfcommSocket.invoke(device, SERVER_PORT);
-        } catch (IOException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             Log.d(TAG, "Failed to create socket", e);
-        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
         socket = tmpSocket;
     }
