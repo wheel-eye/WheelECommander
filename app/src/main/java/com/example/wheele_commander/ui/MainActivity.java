@@ -85,10 +85,12 @@ public class MainActivity extends AppCompatActivity {
         batteryViewModel.getBatteryCharge().observe(this, batteryLevel ->
                 batteryView.setBatteryLevel(batteryLevel / 100f));
         batteryViewModel.getEstimatedMileage().observe(this, estimatedMileage ->
-                mileageTextView.setText(String.format(Locale.UK, "%d km", estimatedMileage)));
+                mileageTextView.setText(String.format(Locale.UK, "%.2f km", estimatedMileage)));
         movementViewModel.getVelocity().observe(this, speedometerView::setVelocity);
-        movementViewModel.getDistanceTravelled().observe(this, distanceTravelled ->
-                traveledTextView.setText(String.format(Locale.UK, "%.2f km", distanceTravelled)));
+        movementViewModel.getDistanceTravelled().observe(this, distanceTravelled -> {
+            batteryViewModel.setDistanceTravelled(distanceTravelled);
+            traveledTextView.setText(String.format(Locale.UK, "%.2f km", distanceTravelled));
+        });
 
         // TODO: Add check that client has selected Bluetooth and not TCP
         enableBluetooth();

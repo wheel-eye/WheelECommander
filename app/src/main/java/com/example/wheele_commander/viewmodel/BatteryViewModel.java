@@ -33,9 +33,12 @@ public class BatteryViewModel extends AbstractViewModel {
      * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>
      * so that a view may display results with 1 decimal point of precision.
      */
-    private static final int MAXIMUM_MILEAGE = 12; // represents 12km
+    private static final float MAXIMUM_MILEAGE = 12f; // represents 12km
     private final MutableLiveData<Integer> batteryCharge;
-    private final MutableLiveData<Integer> estimatedMileage;
+    private final MutableLiveData<Float> estimatedMileage;
+
+    private float distanceTravelled;
+    private int initialBattery;
 
     public BatteryViewModel(@NonNull Application application) {
         super(application);
@@ -57,6 +60,8 @@ public class BatteryViewModel extends AbstractViewModel {
                 Log.d(TAG, "onServiceDisconnected: Service disconnected");
             }
         };
+        initialBattery = Integer.MIN_VALUE;
+        distanceTravelled = 0f;
     }
 
     @Override
@@ -81,7 +86,7 @@ public class BatteryViewModel extends AbstractViewModel {
      * @return Returns the estimated mileage of the hardware where each unit represents
      * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
      */
-    public LiveData<Integer> getEstimatedMileage() {
+    public LiveData<Float> getEstimatedMileage() {
         return estimatedMileage;
     }
 
@@ -97,16 +102,30 @@ public class BatteryViewModel extends AbstractViewModel {
      */
     @Override
     public void handleMessage(Message msg) {
-        if (msg.what == BATTERY_UPDATE) {
-            int newBatteryCharge = msg.arg1;
-            batteryCharge.postValue(newBatteryCharge);
-            int newEstimatedMileage = newBatteryCharge == 0 ? 0 : MAXIMUM_MILEAGE / newBatteryCharge;
-            estimatedMileage.postValue(newEstimatedMileage);
-        } else {
-            String errorMessage = String.format(
-                    Locale.UK,
+        if (msg.what != BATTERY_UPDATE) {
+            String errorMessage = String.format(Locale.UK,
                     "Expected code %d, got %d%n", BATTERY_UPDATE, msg.what);
             throw new IllegalArgumentException(errorMessage);
         }
+
+        if (initialBattery == Integer.MIN_VALUE)
+            initialBattery = msg.arg1;
+
+        int newBatteryCharge = msg.arg1;
+        batteryCharge.postValue(newBatteryCharge);
+
+        float estimatedMileageValue = 0f;
+        if (newBatteryCharge != 0) {
+            if (distanceTravelled <= 0.01f)
+                estimatedMileageValue = MAXIMUM_MILEAGE * newBatteryCharge / 100f;
+            else
+                estimatedMileageValue = distanceTravelled * ((float) newBatteryCharge)
+                        / ((float) (initialBattery - newBatteryCharge));
+        }
+        estimatedMileage.postValue(estimatedMileageValue);
+    }
+
+    public void setDistanceTravelled(float distanceTravelled) {
+        this.distanceTravelled = distanceTravelled;
     }
 }
