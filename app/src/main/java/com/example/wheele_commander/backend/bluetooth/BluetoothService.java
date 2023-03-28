@@ -8,7 +8,7 @@ import com.example.wheele_commander.backend.CommunicationService;
 import com.example.wheele_commander.backend.interfaces.IConnection;
 
 public class BluetoothService extends CommunicationService {
-    private static final String MAC_ADDRESS = "B8:27:EB:C4:80:A1";
+    private static final String MAC_ADDRESS = "DC:A6:32:18:06:59";
 
     protected String TAG = "BluetoothService";
 
