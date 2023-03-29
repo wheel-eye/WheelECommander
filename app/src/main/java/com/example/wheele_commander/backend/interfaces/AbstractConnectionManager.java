@@ -4,6 +4,8 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
+
+import com.example.wheele_commander.backend.ConnectionStatus;
 import com.example.wheele_commander.backend.listeners.IConnectionListener;
 import com.example.wheele_commander.backend.listeners.IConnectionReconnectListener;
 
@@ -14,11 +16,11 @@ public abstract class AbstractConnectionManager {
     protected String TAG = "AbstractConnectionManager";
     protected IConnection connection;
     protected boolean stopReconnect;
-    protected MutableLiveData<String> connectionStatus;
+    protected MutableLiveData<ConnectionStatus> connectionStatus;
     private IConnectionReconnectListener reconnectListener;
 
     protected AbstractConnectionManager() {
-        connectionStatus = new MutableLiveData<>("Disconnected");
+        connectionStatus = new MutableLiveData<>(ConnectionStatus.DISCONNECTED);
     }
 
     public abstract void createChannel();
@@ -27,7 +29,7 @@ public abstract class AbstractConnectionManager {
 
     public void disconnect() {
         stopReconnect = true;
-        connectionStatus.postValue("Disconnected");
+        connectionStatus.postValue(ConnectionStatus.DISCONNECTED);
     }
 
     protected void onConnectionLost() {
@@ -62,7 +64,7 @@ public abstract class AbstractConnectionManager {
         return connection != null;
     }
 
-    public MutableLiveData<String> getConnectionStatus() {
+    public MutableLiveData<ConnectionStatus> getConnectionStatus() {
         return connectionStatus;
     }
 }

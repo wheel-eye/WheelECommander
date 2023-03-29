@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
 import android.widget.Toast;
+
 import com.example.wheele_commander.backend.CommunicationService;
 import com.example.wheele_commander.backend.interfaces.IConnection;
 
@@ -22,7 +23,7 @@ public class BluetoothService extends CommunicationService {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); // I don't know how else to access it
         BluetoothDevice bluetoothDevice = bluetoothAdapter.getRemoteDevice(MAC_ADDRESS);
         if (bluetoothDevice == null) {
-            Toast.makeText(getApplicationContext(), bluetoothDevice.getName() + " not reachable", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Device not reachable", Toast.LENGTH_LONG).show();
             return;
         }
 

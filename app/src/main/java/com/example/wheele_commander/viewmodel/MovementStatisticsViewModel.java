@@ -1,16 +1,11 @@
 package com.example.wheele_commander.viewmodel;
 
-import android.app.Application;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
-import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.CommunicationService;
 
@@ -25,52 +20,21 @@ import java.util.Locale;
  * @author Peter Marks
  * @see com.example.wheele_commander.viewmodel.MessageType
  */
-public class MovementStatisticsViewModel extends AbstractViewModel {
+public class MovementStatisticsViewModel extends ViewModel implements IViewModel {
     private static final String TAG = "MovementStatisticsViewM";
     private final MutableLiveData<Float> velocity;
-    private final MutableLiveData<Integer> acceleration;
     private final MutableLiveData<Float> distanceTravelled;
     private Long lastReadingMillis;
 
-    public MovementStatisticsViewModel(@NonNull Application application) {
-        super(application);
+    public MovementStatisticsViewModel() {
         velocity = new MutableLiveData<>(0f);
-        acceleration = new MutableLiveData<>(0);
         distanceTravelled = new MutableLiveData<>(0f);
         lastReadingMillis = SystemClock.uptimeMillis();
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-                Log.d(TAG, "onServiceConnected: Connected to service");
-                CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
-                communicationService = binder.getService();
-
-                // TODO: evil, but better than passing reference to NetworkClient via setter
-                communicationService.getMovementMessageData().observeForever(messageObserver);
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                Log.d(TAG, "onServiceDisconnected: Service disconnected");
-            }
-        };
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        communicationService.getMovementMessageData().removeObserver(messageObserver);
-    }
-
-    /**
-     * returns the current acceleration of the connected hardware.
-     *
-     * @return Returns the acceleration of the hardware battery where each unit represents a
-     * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per square second
-     * (dm/s^2).
-     */
-    public LiveData<Integer> getAcceleration() {
-        return acceleration;
     }
 
     /**
@@ -80,7 +44,7 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
      * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a> per second
      * (dm/s).
      */
-    public LiveData<Float> getVelocity() {
+    public MutableLiveData<Float> getVelocity() {
         return velocity;
     }
 
@@ -104,7 +68,6 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
      *                                   {@code VELOCITY_UPDATE}.
      * @throws IndexOutOfBoundsException Thrown when given an unknown message nominal.
      */
-    @Override
     public void handleMessage(Message msg) {
         if (msg.what != MessageType.VELOCITY_UPDATE) {
             String errorMessage = String.format(
@@ -121,5 +84,10 @@ public class MovementStatisticsViewModel extends AbstractViewModel {
         distanceTravelled.postValue(distanceTravelled.getValue() + (elapsedTime * (velocity.getValue() + newVelocity)) / 7200000f);
         velocity.postValue(newVelocity);
         lastReadingMillis = SystemClock.uptimeMillis();
+    }
+
+    @Override
+    public void registerCommunicationService(CommunicationService communicationService) {
+        communicationService.getMovementMessageData().observeForever(this::handleMessage);
     }
 }

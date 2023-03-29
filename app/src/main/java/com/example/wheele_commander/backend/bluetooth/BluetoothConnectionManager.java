@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 import android.util.Log;
+
+import com.example.wheele_commander.backend.ConnectionStatus;
 import com.example.wheele_commander.backend.interfaces.AbstractConnectionManager;
 import com.example.wheele_commander.backend.interfaces.IConnection;
 
@@ -47,14 +49,14 @@ public class BluetoothConnectionManager extends AbstractConnectionManager {
 
     @Override
     public IConnection connectChannel() {
-        connectionStatus.postValue("Connecting");
+        connectionStatus.postValue(ConnectionStatus.CONNECTING);
         while (!stopReconnect) {
             try {
                 socket.connect();
                 Log.d(TAG, "Connected via Bluetooth to " + device.getName());
                 connection = new BluetoothConnection(socket);
                 connection.setConnectionListener(connectionListener);
-                connectionStatus.postValue("Connected");
+                connectionStatus.postValue(ConnectionStatus.CONNECTED);
                 return connection;
             } catch (IOException e) {
                 Log.d(TAG, "Couldn't connect to device, retrying in 2 sec...");

@@ -1,7 +1,7 @@
 package com.example.wheele_commander.viewmodel;
 
 /**
- * Type of supported nominal for communication with ViewModels which implement {@link IMessageSubscriber}.
+ * Type of supported nominal for communication with ViewModels which implement {@link IViewModel}.
  * <p>
  * Usage example:
  * <pre>{@code msg.what = MessageType.BATTERY_UPDATE.ordinal();}</pre>

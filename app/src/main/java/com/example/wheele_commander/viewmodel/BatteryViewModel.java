@@ -2,16 +2,10 @@ package com.example.wheele_commander.viewmodel;
 
 import static com.example.wheele_commander.viewmodel.MessageType.BATTERY_UPDATE;
 
-import android.app.Application;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.CommunicationService;
 
@@ -24,7 +18,7 @@ import java.util.Locale;
  * @author Peter Marks
  * @see com.example.wheele_commander.viewmodel.MessageType
  */
-public class BatteryViewModel extends AbstractViewModel {
+public class BatteryViewModel extends ViewModel implements IViewModel {
     private static final String TAG = "BatteryViewModel";
     /**
      * recalls the mean maximum mileage of the device on smooth terrain with no incline, as measured during testing.
@@ -34,32 +28,18 @@ public class BatteryViewModel extends AbstractViewModel {
      * so that a view may display results with 1 decimal point of precision.
      */
     private static final float MAXIMUM_MILEAGE = 12f; // represents 12km
+    private static final int DEFAULT_CHARGE = 0;
+    private static final float DEFAULT_ESTIMATED_MILEAGE = 0f;
+
     private final MutableLiveData<Integer> batteryCharge;
     private final MutableLiveData<Float> estimatedMileage;
 
     private float distanceTravelled;
     private int initialBattery;
 
-    public BatteryViewModel(@NonNull Application application) {
-        super(application);
-        batteryCharge = new MutableLiveData<>(40);
-        estimatedMileage = new MutableLiveData<>(MAXIMUM_MILEAGE);
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-                Log.d(TAG, "onServiceConnected: Connected to service");
-                CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
-                communicationService = binder.getService();
-
-                // TODO: evil, but better than passing reference to NetworkClient via setter
-                communicationService.getBatteryMessageData().observeForever(messageObserver);
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                Log.d(TAG, "onServiceDisconnected: Service disconnected");
-            }
-        };
+    public BatteryViewModel() {
+        batteryCharge = new MutableLiveData<>(DEFAULT_CHARGE);
+        estimatedMileage = new MutableLiveData<>(DEFAULT_ESTIMATED_MILEAGE);
         initialBattery = Integer.MIN_VALUE;
         distanceTravelled = 0f;
     }
@@ -67,7 +47,6 @@ public class BatteryViewModel extends AbstractViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        communicationService.getBatteryMessageData().removeObserver(messageObserver);
     }
 
     /**
@@ -76,7 +55,7 @@ public class BatteryViewModel extends AbstractViewModel {
      * @return Returns the charge of the hardware battery where each unit represents 0.1%
      * of battery charge.
      */
-    public LiveData<Integer> getBatteryCharge() {
+    public MutableLiveData<Integer> getBatteryCharge() {
         return batteryCharge;
     }
 
@@ -86,7 +65,7 @@ public class BatteryViewModel extends AbstractViewModel {
      * @return Returns the estimated mileage of the hardware where each unit represents
      * a <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>.
      */
-    public LiveData<Float> getEstimatedMileage() {
+    public MutableLiveData<Float> getEstimatedMileage() {
         return estimatedMileage;
     }
 
@@ -100,7 +79,6 @@ public class BatteryViewModel extends AbstractViewModel {
      *                                   {@code BATTERY_UPDATE}.
      * @throws IndexOutOfBoundsException Thrown when given an unknown message nominal.
      */
-    @Override
     public void handleMessage(Message msg) {
         if (msg.what != BATTERY_UPDATE) {
             String errorMessage = String.format(Locale.UK,
@@ -127,5 +105,10 @@ public class BatteryViewModel extends AbstractViewModel {
 
     public void setDistanceTravelled(float distanceTravelled) {
         this.distanceTravelled = distanceTravelled;
+    }
+
+    @Override
+    public void registerCommunicationService(CommunicationService communicationService) {
+        communicationService.getBatteryMessageData().observeForever(this::handleMessage);
     }
 }

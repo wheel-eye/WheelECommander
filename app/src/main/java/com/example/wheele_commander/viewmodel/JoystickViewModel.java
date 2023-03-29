@@ -1,13 +1,8 @@
 package com.example.wheele_commander.viewmodel;
 
-import android.app.Application;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
-import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.CommunicationService;
 
@@ -20,25 +15,9 @@ import com.example.wheele_commander.backend.CommunicationService;
  * @author Peter Marks
  * @see com.example.wheele_commander.viewmodel.MessageType
  */
-public class JoystickViewModel extends AbstractViewModel {
+public class JoystickViewModel extends ViewModel implements IViewModel {
     private static final String TAG = "JoystickViewModel";
-
-    public JoystickViewModel(@NonNull Application application) {
-        super(application);
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-                Log.d(TAG, "onServiceConnected: Connected to service");
-                CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
-                communicationService = binder.getService();
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                Log.d(TAG, "onServiceDisconnected: Service disconnected");
-            }
-        };
-    }
+    private CommunicationService communicationService;
 
     /**
      * relays joystick user input to {@link CommunicationService} such that it may be sent to the connected hardware.
@@ -57,11 +36,13 @@ public class JoystickViewModel extends AbstractViewModel {
 
             message.arg1 = angle;
             message.arg2 = power;
+
             communicationService.send(message);
         }
     }
 
     @Override
-    public void handleMessage(Message message) {
+    public void registerCommunicationService(CommunicationService communicationService) {
+        this.communicationService = communicationService;
     }
 }
