@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -62,7 +63,14 @@ public class MainActivity extends AppCompatActivity {
             communicationService = binder.getService();
 
             communicationService.getConnectionManager().getConnectionStatus().observe(MainActivity.this, s -> {
+                if (s == ConnectionStatus.DISCONNECTED)
+                    statusTextView.setTextColor(Color.RED);
+                else if (s == ConnectionStatus.CONNECTING)
+                    statusTextView.setTextColor(Color.rgb(255, 165, 0));
+                else if (s == ConnectionStatus.CONNECTED)
+                    statusTextView.setTextColor(Color.GREEN);
                 statusTextView.setText(s.name());
+
                 if (s == ConnectionStatus.DISCONNECTED || s == ConnectionStatus.CONNECTING) {
                     batteryViewModel.getBatteryCharge().postValue(0);
                     batteryViewModel.getEstimatedMileage().postValue(0f);
