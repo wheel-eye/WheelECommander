@@ -5,36 +5,34 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.example.wheele_commander.R;
+import com.example.wheele_commander.backend.CommunicationService;
 import com.example.wheele_commander.backend.bluetooth.BluetoothService;
-import com.example.wheele_commander.viewmodel.AbstractViewModel;
-import com.example.wheele_commander.viewmodel.BatteryViewModel;
-import com.example.wheele_commander.viewmodel.JoystickViewModel;
-import com.example.wheele_commander.viewmodel.MovementStatisticsViewModel;
-import com.example.wheele_commander.viewmodel.WarningViewModel;
+import com.example.wheele_commander.viewmodel.*;
+import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-
-import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 @SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
@@ -44,6 +42,31 @@ public class MainActivity extends AppCompatActivity {
     private BatteryViewModel batteryViewModel;
     private MovementStatisticsViewModel movementViewModel;
     private WarningViewModel warningViewModel;
+    private CommunicationService communicationService;
+    private TextView statusTextView;
+    private BatteryView batteryView;
+    private SpeedometerView speedometerView;
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            Log.d(TAG, "onServiceConnected: Connected to service");
+            CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
+            communicationService = binder.getService();
+            statusTextView.setText(communicationService.getConnectionManager().getConnectionStatus().getValue());
+            communicationService.getConnectionManager().getConnectionStatus().observe(MainActivity.this, s -> {
+                statusTextView.setText(s);
+                if (s.equals("Disconnected") || s.equals("Connecting")) {
+                    batteryView.setBatteryLevel(0f);
+                    speedometerView.setVelocity(0f);
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            Log.d(TAG, "onServiceDisconnected: Service disconnected");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +76,10 @@ public class MainActivity extends AppCompatActivity {
         // instantiate views
         ConstraintLayout constraintLayout = findViewById(R.id.constraintLayout);
         JoystickView joystickView = findViewById(R.id.joystickView);
-        BatteryView batteryView = findViewById(R.id.batteryView);
+        batteryView = findViewById(R.id.batteryView);
+        speedometerView = findViewById(R.id.speedometerView);
+        statusTextView = findViewById(R.id.statusTextView);
         TextView mileageTextView = findViewById(R.id.mileageTextView);
-        SpeedometerView speedometerView = findViewById(R.id.speedometerView);
         TextView traveledTextView = findViewById(R.id.traveledTextView);
 
         constraintLayout.setOnTouchListener((view, motionEvent) -> {
@@ -101,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
         if (bluetoothAdapter == null) {
-            Log.d(TAG, "Bluetooth is not supported on this device");
+            Toast.makeText(getApplicationContext(), "Device does not support Bluetooth", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -116,10 +140,10 @@ public class MainActivity extends AppCompatActivity {
                 result -> {
                     int resultCode = result.getResultCode();
                     if (resultCode == Activity.RESULT_OK) {
-                        Log.d(TAG, "Bluetooth enabled");
+                        Toast.makeText(getApplicationContext(), "Bluetooth enabled", Toast.LENGTH_LONG).show();
                         startBluetoothService();
                     } else if (resultCode == Activity.RESULT_CANCELED)
-                        Log.d(TAG, "Bluetooth not enabled");
+                        Toast.makeText(getApplicationContext(), "Bluetooth NOT enabled", Toast.LENGTH_LONG).show();
                 });
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
@@ -134,12 +158,24 @@ public class MainActivity extends AppCompatActivity {
         startService(startIntent);
         List<AbstractViewModel> viewModels = Arrays.asList(joystickViewModel, batteryViewModel, movementViewModel, warningViewModel);
         Intent bindIntent = new Intent(this, BluetoothService.class);
+
+        // bind MainActivity and ViewModels
+        bindService(bindIntent, serviceConnection, BIND_AUTO_CREATE);
         viewModels.forEach(viewModel -> bindService(bindIntent, viewModel.getServiceConnection(), BIND_AUTO_CREATE));
     }
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "onDestroy: Destroying activity");
         super.onDestroy();
+        Log.d(TAG, "onDestroy: Destroying activity");
+        unbindService(serviceConnection);
+        List<AbstractViewModel> viewModels = Arrays.asList(joystickViewModel, batteryViewModel, movementViewModel, warningViewModel);
+        viewModels.forEach(v -> unbindService(v.getServiceConnection()));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop: Stopping activity");
     }
 }

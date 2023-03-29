@@ -3,6 +3,7 @@ package com.example.wheele_commander.backend.interfaces;
 import android.os.SystemClock;
 import android.util.Log;
 
+import androidx.lifecycle.MutableLiveData;
 import com.example.wheele_commander.backend.listeners.IConnectionListener;
 import com.example.wheele_commander.backend.listeners.IConnectionReconnectListener;
 
@@ -12,13 +13,22 @@ public abstract class AbstractConnectionManager {
     protected final IConnectionListener connectionListener = this::onConnectionLost;
     protected String TAG = "AbstractConnectionManager";
     protected IConnection connection;
+    protected boolean stopReconnect;
+    protected MutableLiveData<String> connectionStatus;
     private IConnectionReconnectListener reconnectListener;
+
+    protected AbstractConnectionManager() {
+        connectionStatus = new MutableLiveData<>("Disconnected");
+    }
 
     public abstract void createChannel();
 
     public abstract IConnection connectChannel();
 
-    public abstract void disconnect();
+    public void disconnect() {
+        stopReconnect = true;
+        connectionStatus.postValue("Disconnected");
+    }
 
     protected void onConnectionLost() {
         connection = null;
@@ -27,8 +37,9 @@ public abstract class AbstractConnectionManager {
     }
 
     protected void attemptToReconnect() {
+        stopReconnect = false;
         createChannel();
-        while (true) {
+        while (!stopReconnect) {
             IConnection newConnection = connectChannel();
             if (newConnection != null) {
                 reconnectListener.onReconnect(newConnection);
@@ -49,5 +60,9 @@ public abstract class AbstractConnectionManager {
 
     public boolean isConnected() {
         return connection != null;
+    }
+
+    public MutableLiveData<String> getConnectionStatus() {
+        return connectionStatus;
     }
 }

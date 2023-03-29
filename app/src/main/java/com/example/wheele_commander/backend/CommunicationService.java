@@ -59,7 +59,8 @@ public abstract class CommunicationService extends Service {
         super.onDestroy();
         Log.d(TAG, "onDestroy: Communication service terminated");
         connectionManager.disconnect();
-        communicationThread.stopCommunication();
+        if (connectionManager.isConnected())
+            communicationThread.stopCommunication();
     }
 
     protected void onMessageReceived(Message message) {
@@ -111,5 +112,9 @@ public abstract class CommunicationService extends Service {
 
     public MutableLiveData<Message> getWarningMessageData() {
         return warningMessageData;
+    }
+
+    public AbstractConnectionManager getConnectionManager() {
+        return connectionManager;
     }
 }
