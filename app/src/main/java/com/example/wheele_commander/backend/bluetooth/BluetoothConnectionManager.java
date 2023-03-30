@@ -63,6 +63,7 @@ public class BluetoothConnectionManager extends AbstractConnectionManager {
                 continue;
             }
             if (!isConnecting) {
+                createChannel();
                 isConnecting = true;
                 connectionStatus.postValue(ConnectionStatus.CONNECTING);
             }
