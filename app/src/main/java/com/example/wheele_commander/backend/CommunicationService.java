@@ -39,8 +39,14 @@ public abstract class CommunicationService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind: On bind called");
+        Log.d(TAG, "onBind called");
         return binder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "onUnbind called");
+        return super.onUnbind(intent);
     }
 
     @Override

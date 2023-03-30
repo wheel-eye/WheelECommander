@@ -45,6 +45,9 @@ import io.github.controlwear.virtual.joystick.android.JoystickView;
 @SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    public static final int RED_COLOR = Color.rgb(220, 50, 47);
+    public static final int ORANGE_COLOR = Color.rgb(255, 153, 51);
+    public static final int GREEN_COLOR = Color.rgb(34, 139, 34);
 
     private JoystickViewModel joystickViewModel;
     private BatteryViewModel batteryViewModel;
@@ -64,11 +67,11 @@ public class MainActivity extends AppCompatActivity {
 
             communicationService.getConnectionManager().getConnectionStatus().observe(MainActivity.this, s -> {
                 if (s == ConnectionStatus.DISCONNECTED)
-                    statusTextView.setTextColor(Color.RED);
+                    statusTextView.setTextColor(RED_COLOR);
                 else if (s == ConnectionStatus.CONNECTING)
-                    statusTextView.setTextColor(Color.rgb(255, 165, 0));
+                    statusTextView.setTextColor(ORANGE_COLOR);
                 else if (s == ConnectionStatus.CONNECTED)
-                    statusTextView.setTextColor(Color.GREEN);
+                    statusTextView.setTextColor(GREEN_COLOR);
                 statusTextView.setText(s.name());
 
                 if (s == ConnectionStatus.DISCONNECTED || s == ConnectionStatus.CONNECTING) {

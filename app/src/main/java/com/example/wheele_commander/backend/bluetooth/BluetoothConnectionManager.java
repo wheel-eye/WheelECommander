@@ -1,5 +1,6 @@
 package com.example.wheele_commander.backend.bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
@@ -16,18 +17,20 @@ import java.lang.reflect.Method;
 public class BluetoothConnectionManager extends AbstractConnectionManager {
     private static final int SERVER_PORT = 5;
 
+    private final BluetoothAdapter bluetoothAdapter;
     private final BluetoothDevice device;
     private Method createRfcommSocket;
     private BluetoothSocket socket;
 
-    public BluetoothConnectionManager(BluetoothDevice device) {
+    public BluetoothConnectionManager(BluetoothAdapter bluetoothAdapter, BluetoothDevice device) {
         TAG = "BluetoothConnectionManager";
+        this.bluetoothAdapter = bluetoothAdapter;
+        this.device = device;
         try {
             createRfcommSocket = device.getClass().getMethod("createRfcommSocket", int.class);
         } catch (NoSuchMethodException e) {
             Log.d(TAG, "createRfcommSocket method not found");
         }
-        this.device = device;
     }
 
     @Override
@@ -50,7 +53,20 @@ public class BluetoothConnectionManager extends AbstractConnectionManager {
     @Override
     public IConnection connectChannel() {
         connectionStatus.postValue(ConnectionStatus.CONNECTING);
+        boolean isConnecting = true;
         while (!stopReconnect) {
+            if (!bluetoothAdapter.isEnabled()) {
+                if (isConnecting) {
+                    connectionStatus.postValue(ConnectionStatus.DISCONNECTED);
+                    isConnecting = false;
+                }
+                continue;
+            }
+            if (!isConnecting) {
+                isConnecting = true;
+                connectionStatus.postValue(ConnectionStatus.CONNECTING);
+            }
+
             try {
                 socket.connect();
                 Log.d(TAG, "Connected via Bluetooth to " + device.getName());

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -23,7 +22,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="STATUS"
+            android:text="@string/connectionStatus"
             android:textColor="#FF414D66"
             android:textSize="@dimen/_13sdp" />
 
@@ -33,7 +32,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/_8sdp"
             android:text="DISCONNECTED"
-            android:textColor="@color/white"
+            android:textColor="#DC322F"
             android:textSize="@dimen/_15sdp" />
     </LinearLayout>
 
@@ -72,7 +71,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TRAVELED"
+                android:text="@string/distanceTraveled"
                 android:textColor="#FF414D66"
                 android:textSize="@dimen/_13sdp" />
 
@@ -101,7 +100,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="EST. MILEAGE"
+                android:text="@string/estimatedMileage"
                 android:textColor="#FF414D66"
                 android:textSize="@dimen/_13sdp" />
 
