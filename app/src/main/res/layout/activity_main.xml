@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,15 +10,16 @@
     android:padding="@dimen/_15sdp">
 
     <LinearLayout
-        android:layout_width="@dimen/_120sdp"
-        android:layout_height="0dp"
+        android:layout_width="149dp"
+        android:layout_height="64dp"
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/batteryView">
+        app:layout_constraintTop_toBottomOf="@+id/batteryView"
+        app:layout_constraintVertical_bias="0.72">
 
         <TextView
             android:layout_width="wrap_content"
@@ -38,9 +40,9 @@
 
     <com.example.wheele_commander.ui.SpeedometerView
         android:id="@+id/speedometerView"
-        android:layout_width="@dimen/_220sdp"
-        android:layout_height="@dimen/_220sdp"
-        android:layout_marginTop="@dimen/_15sdp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_marginTop="4dp"
         app:borderColor="#21304F"
         app:borderSize="@dimen/_13sdp"
         app:fillColor="#8721DF"
@@ -118,8 +120,8 @@
 
     <com.example.wheele_commander.ui.BatteryView
         android:id="@+id/batteryView"
-        android:layout_width="@dimen/_180sdp"
-        android:layout_height="@dimen/_180sdp"
+        android:layout_width="@dimen/_170sdp"
+        android:layout_height="@dimen/_170sdp"
         android:layout_marginTop="@dimen/_15sdp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

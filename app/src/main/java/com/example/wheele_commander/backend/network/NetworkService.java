@@ -12,12 +12,11 @@ public class NetworkService extends CommunicationService {
     protected void initializeService() {
         Log.d(TAG, "onCreate: Network Service client created");
 
-        connectionManager = new NetworkConnectionManager();
-        connectionManager.createChannel();
+//        connectionManager = new NetworkConnectionManager();
         connectionManager.setReconnectListener(reconnectListener);
         // essential as Android doesn't allow socket set-up in main thread -> NetworkOnMainThreadException
         new Thread(() -> {
-            IConnection connection = connectionManager.connectChannel();
+            IConnection connection = connectionManager.connect();
             startCommunicationThread(connection);
         }).start();
     }

@@ -10,7 +10,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.wheele_commander.backend.interfaces.AbstractConnectionManager;
+import com.example.wheele_commander.backend.bluetooth.BluetoothConnectionManager;
 import com.example.wheele_commander.backend.interfaces.IConnection;
 import com.example.wheele_commander.backend.listeners.IConnectionReconnectListener;
 import com.example.wheele_commander.backend.listeners.IReceiveListener;
@@ -21,10 +21,10 @@ import com.example.wheele_commander.viewmodel.MessageType;
 public abstract class CommunicationService extends Service {
     protected final IBinder binder = new CommunicationServiceBinder();
     protected final IReceiveListener receiveListener = this::onMessageReceived;
-    protected final IConnectionReconnectListener reconnectListener = this::onReconnect;
+    protected final IConnectionReconnectListener reconnectListener = this::startCommunicationThread;
 
     protected String TAG = "CommunicationService";
-    protected AbstractConnectionManager connectionManager;
+    protected BluetoothConnectionManager connectionManager;
     protected CommunicationThread communicationThread;
     protected MutableLiveData<Message> movementMessageData;
     protected MutableLiveData<Message> batteryMessageData;
@@ -64,9 +64,10 @@ public abstract class CommunicationService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: Communication service terminated");
-        connectionManager.disconnect();
-        if (connectionManager.isConnected())
+        if (communicationThread != null)
             communicationThread.stopCommunication();
+
+        connectionManager.disconnect();
     }
 
     protected void onMessageReceived(Message message) {
@@ -87,14 +88,10 @@ public abstract class CommunicationService extends Service {
             }
         } else if (message.what == MessageConstants.WARNING_MESSAGE) {
             Message warningMessage = new Message();
-            warningMessage.what = MessageConstants.WARNING_MESSAGE;
+            warningMessage.what = MessageType.WARNING_MESSAGE;
             warningMessage.arg1 = ((Warning) message.obj).getCode();
             warningMessageData.postValue(warningMessage);
         }
-    }
-
-    protected void onReconnect(IConnection connection) {
-        startCommunicationThread(connection);
     }
 
     protected void startCommunicationThread(IConnection connection) {
@@ -120,7 +117,7 @@ public abstract class CommunicationService extends Service {
         return warningMessageData;
     }
 
-    public AbstractConnectionManager getConnectionManager() {
+    public BluetoothConnectionManager getConnectionManager() {
         return connectionManager;
     }
 }

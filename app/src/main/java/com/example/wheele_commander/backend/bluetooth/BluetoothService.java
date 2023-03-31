@@ -29,10 +29,9 @@ public class BluetoothService extends CommunicationService {
         }
 
         connectionManager = new BluetoothConnectionManager(bluetoothAdapter, bluetoothDevice);
-        connectionManager.createChannel();
         connectionManager.setReconnectListener(reconnectListener);
         new Thread(() -> {
-            IConnection connection = connectionManager.connectChannel();
+            IConnection connection = connectionManager.connect();
             if (connection != null)
                 startCommunicationThread(connection);
         }).start();

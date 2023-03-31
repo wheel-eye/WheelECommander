@@ -89,7 +89,7 @@ public class BatteryView extends View {
         textPaint.setAntiAlias(true);
         textPaint.setStyle(Paint.Style.FILL);
         textPaint.setColor(Color.WHITE);
-        textPaint.setTextSize(150f);
+        textPaint.setTextSize(135f);
     }
 
     private void init(AttributeSet attrs) {
