@@ -3,7 +3,6 @@ package com.example.wheele_commander.backend.network;
 import android.util.Log;
 
 import com.example.wheele_commander.backend.CommunicationService;
-import com.example.wheele_commander.backend.interfaces.IConnection;
 
 public class NetworkService extends CommunicationService {
     protected String TAG = "NetworkService";
@@ -15,9 +14,6 @@ public class NetworkService extends CommunicationService {
 //        connectionManager = new NetworkConnectionManager();
         connectionManager.setReconnectListener(reconnectListener);
         // essential as Android doesn't allow socket set-up in main thread -> NetworkOnMainThreadException
-        new Thread(() -> {
-            IConnection connection = connectionManager.connect();
-            startCommunicationThread(connection);
-        }).start();
+        new Thread(connectionManager::connect).start();
     }
 }

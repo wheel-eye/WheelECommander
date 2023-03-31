@@ -1,10 +1,14 @@
 package com.example.wheele_commander.deserializer;
 
+import android.util.Log;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class JsonDeserializer {
+    private static final String TAG = "JsonDeserializer";
     private static JsonDeserializer instance;
     private static ObjectMapper objectMapper;
 
@@ -23,7 +27,9 @@ public class JsonDeserializer {
         try {
             return objectMapper.readValue(jsonBytes, type);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            String json = new String(jsonBytes, StandardCharsets.UTF_8);
+            Log.d(TAG, "Failed to deserialize " + json);
         }
+        return null;
     }
 }

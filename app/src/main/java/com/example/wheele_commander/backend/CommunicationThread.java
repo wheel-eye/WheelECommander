@@ -47,7 +47,10 @@ public class CommunicationThread extends Thread implements ICommunicationThread 
 
             switch (header.getMessageType()) {
                 case MessageConstants.DATA_MESSAGE:
-                    msg.obj = JsonDeserializer.getInstance().deserialize(dataBytes, Data.class);
+                    Data data = JsonDeserializer.getInstance().deserialize(dataBytes, Data.class);
+                    if (data == null)
+                        continue;
+                    msg.obj = data;
                     break;
                 case MessageConstants.WARNING_MESSAGE:
                     msg.obj = JsonDeserializer.getInstance().deserialize(dataBytes, Warning.class);

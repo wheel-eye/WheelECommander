@@ -10,8 +10,8 @@ import com.example.wheele_commander.backend.CommunicationService;
 import com.example.wheele_commander.backend.interfaces.IConnection;
 
 public class BluetoothService extends CommunicationService {
-    private static final String MAC_ADDRESS = "DC:A6:32:18:06:59";
-//    private static final String MAC_ADDRESS = "90:61:AE:3F:DE:B3";
+    //    private static final String MAC_ADDRESS = "DC:A6:32:18:06:59";
+    private static final String MAC_ADDRESS = "90:61:AE:3F:DE:B3";
 
     protected String TAG = "BluetoothService";
 
@@ -30,10 +30,6 @@ public class BluetoothService extends CommunicationService {
 
         connectionManager = new BluetoothConnectionManager(bluetoothAdapter, bluetoothDevice);
         connectionManager.setReconnectListener(reconnectListener);
-        new Thread(() -> {
-            IConnection connection = connectionManager.connect();
-            if (connection != null)
-                startCommunicationThread(connection);
-        }).start();
+        new Thread(connectionManager::connect).start();
     }
 }

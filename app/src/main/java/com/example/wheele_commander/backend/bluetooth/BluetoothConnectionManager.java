@@ -71,7 +71,7 @@ public class BluetoothConnectionManager {
         return connection;
     }
 
-    public IConnection connect() {
+    public void connect() {
         stopReconnect = false;
         while (!stopReconnect) {
             if (!bluetoothAdapter.isEnabled()) {
@@ -91,15 +91,13 @@ public class BluetoothConnectionManager {
                 reconnectListener.onReconnect(newConnection);
                 connectionStatus.postValue(ConnectionStatus.CONNECTED);
                 Log.d(TAG, "Connected via Bluetooth to " + device.getName());
-                return newConnection;
+                return;
             } catch (IOException e) {
                 Log.d(TAG, "Couldn't connect to device, retrying in 2 sec...");
             }
 
             SystemClock.sleep(RECONNECT_DELAY_MS);
         }
-
-        return null;
     }
 
     public void disconnect() {
