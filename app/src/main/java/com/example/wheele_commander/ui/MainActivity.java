@@ -3,6 +3,7 @@ package com.example.wheele_commander.ui;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
@@ -58,12 +59,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView statusTextView;
     private BatteryView batteryView;
 
+    private boolean isBound = false;
+    private ActivityResultLauncher<Intent> enableBtLauncher;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             Log.d(TAG, "onServiceConnected: Connected to service");
             CommunicationService.CommunicationServiceBinder binder = (CommunicationService.CommunicationServiceBinder) iBinder;
             communicationService = binder.getService();
+            isBound = true;
 
             communicationService.getConnectionManager().getConnectionStatus().observe(MainActivity.this, s -> {
                 if (s == ConnectionStatus.DISCONNECTED)
@@ -88,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             Log.d(TAG, "onServiceDisconnected: Service disconnected");
+            isBound = false;
         }
     };
 
@@ -95,9 +100,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         initViewModels();
         initView();
-        enableBluetooth();
+
+        enableBtLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    int resultCode = result.getResultCode();
+                    if (resultCode == Activity.RESULT_OK) {
+                        Toast.makeText(getApplicationContext(), "Bluetooth enabled", Toast.LENGTH_LONG).show();
+                        startBluetoothService();
+                    } else if (resultCode == Activity.RESULT_CANCELED)
+                        Toast.makeText(getApplicationContext(), "Bluetooth NOT enabled", Toast.LENGTH_LONG).show();
+                });
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Disable brakes")
+                .setMessage("Are you sure you have disabled your wheelchair's brakes?")
+                .setCancelable(false)
+                .setPositiveButton(R.string.dialog_yes, (dialog, which) -> enableBluetooth())
+                .setNegativeButton(R.string.dialog_no, (dialog, which) -> {
+                    Toast.makeText(MainActivity.this, "Please disable brakes before using Wheel-E Commander", Toast.LENGTH_LONG).show();
+                    finish();
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     private void initView() {
@@ -158,29 +186,19 @@ public class MainActivity extends AppCompatActivity {
 
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(), "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show();
+            finish();
             return;
         }
-
         if (bluetoothAdapter.isEnabled()) {
             startBluetoothService();
             return;
         }
-
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        ActivityResultLauncher<Intent> enableBtLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    int resultCode = result.getResultCode();
-                    if (resultCode == Activity.RESULT_OK) {
-                        Toast.makeText(getApplicationContext(), "Bluetooth enabled", Toast.LENGTH_LONG).show();
-                        startBluetoothService();
-                    } else if (resultCode == Activity.RESULT_CANCELED)
-                        Toast.makeText(getApplicationContext(), "Bluetooth NOT enabled", Toast.LENGTH_LONG).show();
-                });
         enableBtLauncher.launch(enableBtIntent);
     }
 
     private void startBluetoothService() {
+        Log.d(TAG, "startBluetoothService: Here am I");
         // bind MainActivity and ViewModels
         Intent startIntent = new Intent(this, BluetoothService.class);
         startService(startIntent);
@@ -189,15 +207,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy: Destroying activity");
-        unbindService(serviceConnection);
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop: Stopping activity");
+        if (isBound)
+            unbindService(serviceConnection);
+        isBound = false;
     }
 }
