@@ -6,16 +6,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,7 +39,6 @@ import com.example.wheele_commander.viewmodel.IViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
 import com.example.wheele_commander.viewmodel.MovementStatisticsViewModel;
 import com.example.wheele_commander.viewmodel.WarningViewModel;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +46,6 @@ import java.util.Locale;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
-@SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     public static final int RED_COLOR = Color.rgb(220, 50, 47);
@@ -66,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isBound = false;
     private ActivityResultLauncher<Intent> enableBtLauncher;
+    private BluetoothAdapter bluetoothAdapter;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -100,11 +99,28 @@ public class MainActivity extends AppCompatActivity {
             isBound = false;
         }
     };
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                if (!isBound && state == BluetoothAdapter.STATE_ON)
+                    startBluetooth();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(receiver, filter);
+
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothAdapter = bluetoothManager.getAdapter();
 
         initViewModels();
         initView();
@@ -133,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initView() {
         ConstraintLayout constraintLayout = findViewById(R.id.constraintLayout);
         JoystickView joystickView = findViewById(R.id.joystickView);
@@ -180,8 +197,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enableBluetooth() {
-        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(), "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show();
             finishAffinity();
@@ -190,28 +205,25 @@ public class MainActivity extends AppCompatActivity {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT);
-            if (permission == PackageManager.PERMISSION_GRANTED) {
-                if (bluetoothAdapter.isEnabled())
-                    startBluetoothService();
-                else {
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    enableBtLauncher.launch(enableBtIntent);
-                }
-            } else
+            if (permission == PackageManager.PERMISSION_GRANTED)
+                startBluetooth();
+            else
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, PERMISSION_REQUEST_BLUETOOTH);
+        } else
+            startBluetooth();
+    }
+
+    private void startBluetooth() {
+        if (bluetoothAdapter.isEnabled()) {
+            Log.d(TAG, "Bluetooth is already enabled");
+            startBluetoothService();
         } else {
-            if (bluetoothAdapter.isEnabled())
-                startBluetoothService();
-            else {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                enableBtLauncher.launch(enableBtIntent);
-            }
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            enableBtLauncher.launch(enableBtIntent);
         }
     }
 
     private void startBluetoothService() {
-        Log.d(TAG, "startBluetoothService: Here am I");
-        // bind MainActivity and ViewModels
         Intent startIntent = new Intent(this, BluetoothService.class);
         startService(startIntent);
         Intent bindIntent = new Intent(this, BluetoothService.class);
@@ -222,17 +234,10 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
         if (requestCode == PERMISSION_REQUEST_BLUETOOTH) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Bluetooth permission granted", Toast.LENGTH_SHORT).show();
-                if (bluetoothAdapter.isEnabled())
-                    startBluetoothService();
-                else {
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    enableBtLauncher.launch(enableBtIntent);
-                }
+                startBluetooth();
             } else
                 Toast.makeText(this, "Bluetooth permission denied", Toast.LENGTH_SHORT).show();
         }
@@ -242,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop: Stopping activity");
+        unregisterReceiver(receiver);
         if (isBound)
             unbindService(serviceConnection);
         isBound = false;
