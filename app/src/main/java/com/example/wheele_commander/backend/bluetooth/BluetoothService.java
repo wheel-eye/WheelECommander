@@ -8,8 +8,8 @@ import android.widget.Toast;
 import com.example.wheele_commander.backend.CommunicationService;
 
 public class BluetoothService extends CommunicationService {
-    //    private static final String MAC_ADDRESS = "DC:A6:32:18:06:59";
-    private static final String MAC_ADDRESS = "90:61:AE:3F:DE:B3";
+        private static final String MAC_ADDRESS = "DC:A6:32:18:06:59";
+//    private static final String MAC_ADDRESS = "90:61:AE:3F:DE:B3";
 
     protected String TAG = "BluetoothService";
 
