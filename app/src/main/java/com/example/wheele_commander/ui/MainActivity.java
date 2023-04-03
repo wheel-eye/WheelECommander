@@ -3,7 +3,6 @@ package com.example.wheele_commander.ui;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -25,6 +24,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
@@ -39,6 +39,7 @@ import com.example.wheele_commander.viewmodel.IViewModel;
 import com.example.wheele_commander.viewmodel.JoystickViewModel;
 import com.example.wheele_commander.viewmodel.MovementStatisticsViewModel;
 import com.example.wheele_commander.viewmodel.WarningViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -110,11 +111,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+    private AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(TAG, "Creating MainActivity");
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(receiver, filter);
@@ -136,17 +139,19 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "Bluetooth NOT enabled", Toast.LENGTH_LONG).show();
                 });
 
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Disable brakes")
-                .setMessage("Are you sure you have disabled your wheelchair's brakes?")
-                .setCancelable(false)
-                .setPositiveButton(R.string.dialog_yes, (dialog, which) -> enableBluetooth())
-                .setNegativeButton(R.string.dialog_no, (dialog, which) -> {
-                    Toast.makeText(MainActivity.this, "Please disable brakes before using Wheel-E Commander", Toast.LENGTH_LONG).show();
-                    finishAffinity();
+        AlertDialog.Builder alertDialogBuilder = new MaterialAlertDialogBuilder(this, R.style.AlertDialogStyle)
+                .setTitle("Disable Brakes")
+                .setMessage("Please confirm that you have disabled any brakes on your wheelchair. Not doing so could lead to motor damage.")
+                .setPositiveButton(R.string.dialog_yes, (dialog, which) -> {
+                    enableBluetooth();
+                    dialog.dismiss();
                 })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+                .setCancelable(false)
+                .setIcon(android.R.drawable.ic_dialog_alert);
+        alertDialogBuilder.show();
+        alertDialog = alertDialogBuilder
+                .setPositiveButton(R.string.dialog_yes, (dialog, which) -> dialog.dismiss())
+                .create();
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -188,6 +193,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        alertDialog.show();
+    }
+
     private void initViewModels() {
         ViewModelProvider viewModelProvider = new ViewModelProvider(this);
         joystickViewModel = viewModelProvider.get(JoystickViewModel.class);
@@ -197,6 +208,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enableBluetooth() {
+        Log.d(TAG, "Enabling Bluetooth");
+
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(), "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show();
             finishAffinity();
@@ -244,12 +257,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop: Stopping activity");
-        unregisterReceiver(receiver);
-        if (isBound)
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy: Destroying activity");
+        if (isBound) {
+            unregisterReceiver(receiver);
             unbindService(serviceConnection);
+        }
         isBound = false;
     }
 }

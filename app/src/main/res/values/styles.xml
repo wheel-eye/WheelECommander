@@ -7,4 +7,14 @@
         <item name="android:windowFullscreen">true</item>
     </style>
 
+    <style name="AlertDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:textColor">#dc322f</item>
+        <item name="android:colorAccent">#dc322f</item>
+        <item name="android:textColorPrimary">#dc322f</item>
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">#00f</item>
+    </style>
 </resources>

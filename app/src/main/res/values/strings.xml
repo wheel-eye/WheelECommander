@@ -4,6 +4,6 @@
     <string name="distanceTraveled">TRAVELED</string>
     <string name="estimatedMileage">EST. MILEAGE</string>
 
-    <string name="dialog_yes">Yes</string>
+    <string name="dialog_yes">Confirm</string>
     <string name="dialog_no">No</string>
 </resources>
