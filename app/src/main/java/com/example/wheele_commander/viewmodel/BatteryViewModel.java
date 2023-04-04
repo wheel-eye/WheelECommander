@@ -123,17 +123,14 @@ public class BatteryViewModel extends ViewModel implements IViewModel {
                     // determine estimated mileage
                     float estimatedMileageValue = 0f;
                     if (newBattery != 0) {
-                        if (initialBattery == 0 || distanceTravelled <= 0.01f) {
+                        if (initialBattery == 0 || distanceTravelled <= 0.01f)
                             estimatedMileageValue = MAXIMUM_MILEAGE * newBattery / 100f;
-                        } else {
+                        else
                             estimatedMileageValue = distanceTravelled * ((float) newBattery)
                                     / ((float) Math.abs(initialBattery - newBattery));
-                        }
                     }
-
                     estimatedMileage.postValue(estimatedMileageValue);
                 }
-
                 batteryCharge.postValue(newBattery);
             }
         }
