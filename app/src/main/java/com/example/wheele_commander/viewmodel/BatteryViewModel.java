@@ -3,13 +3,20 @@ package com.example.wheele_commander.viewmodel;
 import static com.example.wheele_commander.viewmodel.MessageType.BATTERY_UPDATE;
 
 import android.os.Message;
+import android.os.SystemClock;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.wheele_commander.backend.CommunicationService;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * stores information on the battery of the connected hardware and handles {@code BATTERY_UPDATE} messages.
@@ -27,21 +34,24 @@ public class BatteryViewModel extends ViewModel implements IViewModel {
      * <a href="https://physics.nist.gov/cuu/Units/prefixes.html">decimeter</a>
      * so that a view may display results with 1 decimal point of precision.
      */
-    private static final float MAXIMUM_MILEAGE = 12f; // represents 12km
+    private static final float MAXIMUM_MILEAGE = 5f; // represents 5km
     private static final int DEFAULT_CHARGE = 0;
     private static final float DEFAULT_ESTIMATED_MILEAGE = 0f;
 
     private final MutableLiveData<Integer> batteryCharge;
     private final MutableLiveData<Float> estimatedMileage;
+    private final List<Integer> batteryReadings;
 
     private float distanceTravelled;
-    private int initialBattery;
+    private long timerStartTime;
 
     public BatteryViewModel() {
         batteryCharge = new MutableLiveData<>(DEFAULT_CHARGE);
         estimatedMileage = new MutableLiveData<>(DEFAULT_ESTIMATED_MILEAGE);
-        initialBattery = Integer.MIN_VALUE;
         distanceTravelled = 0f;
+
+        batteryReadings = new ArrayList<>();
+        timerStartTime = SystemClock.uptimeMillis();
     }
 
     @Override
@@ -86,21 +96,77 @@ public class BatteryViewModel extends ViewModel implements IViewModel {
             throw new IllegalArgumentException(errorMessage);
         }
 
-        if (initialBattery == Integer.MIN_VALUE)
-            initialBattery = msg.arg1;
+        int receivedBattery = msg.arg1;
 
-        int newBatteryCharge = msg.arg1;
-        batteryCharge.postValue(newBatteryCharge);
-
-        float estimatedMileageValue = 0f;
-        if (newBatteryCharge != 0) {
-            if (distanceTravelled <= 0.01f)
-                estimatedMileageValue = MAXIMUM_MILEAGE * newBatteryCharge / 100f;
-            else
-                estimatedMileageValue = distanceTravelled * ((float) newBatteryCharge)
-                        / ((float) (initialBattery - newBatteryCharge));
+        if (receivedBattery <= 0) {
+            batteryCharge.postValue(DEFAULT_CHARGE);
+            estimatedMileage.postValue(DEFAULT_ESTIMATED_MILEAGE);
+            batteryReadings.clear();
+            timerStartTime = SystemClock.uptimeMillis();
+            return;
         }
-        estimatedMileage.postValue(estimatedMileageValue);
+
+        // collect battery data for a couple of seconds
+        if (SystemClock.uptimeMillis() - timerStartTime < 5000L) {
+            batteryReadings.add(receivedBattery);
+            return;
+        }
+
+        if (!batteryReadings.isEmpty()) {
+            // filter outliers and calculate the new battery value
+            List<Integer> filteredReadings = filterOutliers(batteryReadings);
+            int newBattery = Math.floorDiv(Collections.max(filteredReadings), 10) * 10;
+            int initialBattery = batteryCharge.getValue();
+
+            if (initialBattery == 0 || hasRepeatedNumber(filteredReadings) || newBattery < initialBattery) {
+                if (initialBattery != newBattery) {
+                    // determine estimated mileage
+                    float estimatedMileageValue = 0f;
+                    if (newBattery != 0) {
+                        if (initialBattery == 0 || distanceTravelled <= 0.01f) {
+                            estimatedMileageValue = MAXIMUM_MILEAGE * newBattery / 100f;
+                        } else {
+                            estimatedMileageValue = distanceTravelled * ((float) newBattery)
+                                    / ((float) Math.abs(initialBattery - newBattery));
+                        }
+                    }
+
+                    estimatedMileage.postValue(estimatedMileageValue);
+                }
+
+                batteryCharge.postValue(newBattery);
+            }
+        }
+
+        batteryReadings.clear();
+        timerStartTime = SystemClock.uptimeMillis();
+    }
+
+    private List<Integer> filterOutliers(List<Integer> readings) {
+        List<Integer> sortedReadings = new ArrayList<>(readings);
+        Collections.sort(sortedReadings);
+        int q1Index = (int) (sortedReadings.size() * 0.25);
+        int q3Index = (int) (sortedReadings.size() * 0.75);
+        int q1 = sortedReadings.get(q1Index);
+        int q3 = sortedReadings.get(q3Index);
+        int iqr = q3 - q1;
+        int lowerBound = (int) Math.round(q1 - 0.5 * iqr);
+        int upperBound = (int) Math.round(q3 + 0.5 * iqr);
+        return readings.stream()
+                .filter(r -> r >= lowerBound && r <= upperBound)
+                .collect(Collectors.toList());
+    }
+
+    private static boolean hasRepeatedNumber(List<Integer> numbers) {
+        Map<Integer, Integer> countMap = new HashMap<>();
+        for (int number : numbers) {
+            int newCount = countMap.getOrDefault(number, 0) + 1;
+            if (newCount >= 5)
+                return true;
+            countMap.put(number, newCount);
+        }
+
+        return false;
     }
 
     public void setDistanceTravelled(float distanceTravelled) {

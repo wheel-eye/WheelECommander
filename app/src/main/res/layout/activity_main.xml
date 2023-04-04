@@ -48,7 +48,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:maxSpeed="10"
+        app:maxSpeed="5"
         app:metricText="km/h"
         app:textColor="#f5f5f5" />
 

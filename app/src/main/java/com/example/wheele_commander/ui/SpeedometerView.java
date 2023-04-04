@@ -22,8 +22,8 @@ public class SpeedometerView extends View {
     public static final float START_ANGLE = 140f;
     public static final float SWEEP_ANGLE = 260f;
     public static final int MIN_SPEED = 0;
-    public static final int MINOR_TICK_STEP = 1;
-    public static final int MAJOR_TICK_STEP = 2;
+    public static final int MAJOR_TICK_STEP = 1;
+    public static final float MINOR_TICK_STEP = 0.5f;
     public static final float TICK_MARGIN = 8f;
     public static final float TICK_TEXT_MARGIN = 30f;
     public static final float MAJOR_TICK_SIZE = 50f;
@@ -32,7 +32,7 @@ public class SpeedometerView extends View {
     public static final float MINOR_TICK_WIDTH = 4f;
     private static final long ANIMATION_DURATION = 400L;
 
-    private int maxSpeed = 10;
+    private int maxSpeed = 5;
     private float borderSize = 36f;
     private float textGap = 50f;
     private int borderColor = Color.parseColor("#402c47");
@@ -266,7 +266,7 @@ public class SpeedometerView extends View {
         // TODO: Replace properly!
         centerX = getWidth() / 2f;
         centerY = getHeight() / 2f;
-        for (int speed = MIN_SPEED; speed <= maxSpeed; speed += MINOR_TICK_STEP) {
+        for (float speed = MIN_SPEED; speed <= maxSpeed; speed += MINOR_TICK_STEP) {
             float angle = (float) Math.toRadians(mapSpeedToAngle(speed));
             float cosAngle = (float) Math.cos(angle);
             float sinAngle = (float) Math.sin(angle);
@@ -281,7 +281,7 @@ public class SpeedometerView extends View {
                     tickPaint);
 
             if (speed % MAJOR_TICK_STEP == 0) {
-                drawTextCentred(canvas, Integer.toString(speed),
+                drawTextCentred(canvas, Integer.toString((int) speed),
                         centerX + (centerX - borderSize - MAJOR_TICK_SIZE - TICK_MARGIN - TICK_TEXT_MARGIN) * cosAngle,
                         centerY - (centerY - borderSize - MAJOR_TICK_SIZE - TICK_MARGIN - TICK_TEXT_MARGIN) * sinAngle, paintTickText);
             }

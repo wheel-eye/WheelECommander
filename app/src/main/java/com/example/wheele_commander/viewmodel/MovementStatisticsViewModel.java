@@ -21,7 +21,7 @@ import java.util.Locale;
  * @see com.example.wheele_commander.viewmodel.MessageType
  */
 public class MovementStatisticsViewModel extends ViewModel implements IViewModel {
-    private static final String TAG = "MovementStatisticsViewM";
+    private static final String TAG = "MovementStatisticsViewModel";
     private final MutableLiveData<Float> velocity;
     private final MutableLiveData<Float> distanceTravelled;
     private Long lastReadingMillis;
